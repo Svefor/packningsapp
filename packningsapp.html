@@ -788,21 +788,28 @@ async function handleAddExcel(file) {
         var a = existingMap[artNr];
         var existingQty = parseInt(a.qty) || 0;
         var oldUnit = a.qty.replace(/[0-9]/g, '').trim() || unit;
+        var addAmount = 0;
 
         if (appearsMultiple) {
-          // Multiple rows: first row = original (skip), second row = tillagg (add directly)
-          if (isFirstOccurrence) return; // Skip first occurrence
-          a.qty = (existingQty + rowQty) + ' ' + oldUnit;
-          a.kolli = null;
-          updated++;
+          // Multiple rows: first row = original (skip), second row = tillagg
+          if (isFirstOccurrence) return;
+          addAmount = rowQty;
         } else {
-          // Single row: compare total with existing, add difference
-          var diff = rowQty - existingQty;
-          if (diff <= 0) return;
-          a.qty = (existingQty + diff) + ' ' + oldUnit;
-          a.kolli = null;
-          updated++;
+          // Single row: diff = total new minus existing
+          addAmount = rowQty - existingQty;
+          if (addAmount <= 0) return;
         }
+
+        // Add as a NEW row so packaren sees exactly what to add
+        // Keep existing packed row untouched
+        currentOrder.articles.push({
+          id: 'a' + Date.now() + idx,
+          name: name + ' (tillägg)',
+          qty: addAmount + ' ' + oldUnit,
+          location: a.location || location,
+          kolli: null
+        });
+        updated++;
       } else {
         // New article – only add once (first occurrence)
         if (!isFirstOccurrence) return;
