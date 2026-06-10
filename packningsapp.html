@@ -742,46 +742,53 @@ async function handleAddExcel(file) {
     var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
     var added = 0;
     var updated = 0;
+
+    // Build a map of existing articles by artikelnummer for fast lookup
+    var existingMap = {};
+    currentOrder.articles.forEach(function(a) {
+      var match = a.name.match(/^(\d{4}-\d{4})/);
+      if (match) existingMap[match[1]] = a;
+    });
+
     rows.forEach(function(row, idx) {
-      if (String(row[0]).trim() !== 'Artikel') return;
+      var typ = String(row[0]||'').trim();
       var artNr = String(row[1]||'').trim();
+      // Accept rows with typ='Artikel' OR rows with empty typ but valid artikelnummer
+      if (!artNr || artNr === 'Nr') return;
+      if (typ && typ !== 'Artikel') return;
       var desc = String(row[4]||'').trim();
       var location = String(row[5]||'').trim();
-      var qty = String(row[16]||row[6]||'').trim();
-      var unit = String(row[9]||'').trim();
-      if (!artNr && !desc) return;
-      var newQty = parseInt(qty) || 1;
-      var name = artNr ? (artNr + (desc ? ' – ' + desc : '')) : desc;
-      // Check if article already exists (match on artikelnummer prefix)
-      var existing = null;
-      if (artNr) {
-        existing = currentOrder.articles.find(function(a) {
-          return a.name.indexOf(artNr) === 0;
-        });
-      }
-      if (existing) {
-        // Update quantity
-        var oldQty = parseInt(existing.qty) || 0;
-        var oldUnit = existing.qty.replace(/[0-9]/g, '').trim() || unit || 'ST';
-        existing.qty = (oldQty + newQty) + ' ' + oldUnit;
-        // If already packed, unpack it so packaren sees the updated quantity
-        existing.kolli = null;
+      // Use qty from column Q (index 16) if available, else column G (index 6)
+      var qtyRaw = String(row[16]||row[6]||'').trim();
+      var unit = String(row[9]||'').trim() || 'ST';
+      if (!qtyRaw) return;
+      var newQty = parseInt(qtyRaw) || 1;
+      var name = artNr + (desc ? ' – ' + desc : '');
+
+      if (existingMap[artNr]) {
+        // Article exists - add to its quantity and unpack
+        var a = existingMap[artNr];
+        var oldQty = parseInt(a.qty) || 0;
+        var oldUnit = a.qty.replace(/[0-9]/g, '').trim() || unit;
+        a.qty = (oldQty + newQty) + ' ' + oldUnit;
+        a.kolli = null; // move back to unpacked
         updated++;
       } else {
         // New article
         currentOrder.articles.push({
           id: 'a' + Date.now() + idx,
           name: name,
-          qty: qty + (unit ? ' ' + unit : ''),
+          qty: newQty + ' ' + unit,
           location: location,
           kolli: null
         });
+        existingMap[artNr] = currentOrder.articles[currentOrder.articles.length - 1];
         added++;
       }
     });
     scheduleSave();
     renderPackView();
-    alert('Klart! ' + added + ' nya artiklar tillagda, ' + updated + ' artiklar uppdaterade.');
+    alert('Klart! ' + added + ' nya artiklar tillagda, ' + updated + ' artiklar uppdaterade med nytt antal.');
   } catch(e) {
     alert('Fel vid inläsning: ' + e.message);
   }
