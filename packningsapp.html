@@ -205,6 +205,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
             <div id="pack-kollin" style="height:calc(100vh - 300px);overflow-y:auto;padding-right:4px"></div>
             <button class="add-kolli-btn" onclick="addKolliCurrent()">+ L&auml;gg till kolli</button>
             <button class="add-article-btn" id="add-art-btn">+ L&auml;gg till artikel / kartong</button>
+            <button class="add-article-btn" id="add-excel-btn" style="margin-top:4px">+ L&auml;gg till fr&aring;n Excel</button>
+            <input type="file" id="add-excel-input" accept=".xlsx,.xls" style="display:none">
           </div>
         </div>
       </div>
@@ -310,6 +312,7 @@ async function initApp() {
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-name').textContent = account.name || account.username;
   document.getElementById('add-art-btn').onclick = function() { openAddArtModal(); };
+  initAddExcelBtn();
   try {
     var siteResp = await graphRequest('GET', '/sites/scanacon.sharepoint.com:/sites/Operation');
     siteId = siteResp.id;
@@ -722,6 +725,67 @@ async function parseExcel(file) {
 function showNewOrderError(msg) { document.getElementById('new-order-error').innerHTML = '<div class="error-msg">' + msg + '</div>'; }
 function showAuthError(msg) { var el = document.getElementById('auth-error'); el.textContent = msg; el.style.display = 'block'; }
 function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function initAddExcelBtn() {
+  var btn = document.getElementById('add-excel-btn');
+  var inp = document.getElementById('add-excel-input');
+  if (!btn || !inp) return;
+  btn.onclick = function() { inp.value = ''; inp.click(); };
+  inp.onchange = function(e) { if (e.target.files[0]) handleAddExcel(e.target.files[0]); };
+}
+
+async function handleAddExcel(file) {
+  try {
+    var ab = await file.arrayBuffer();
+    var wb = XLSX.read(ab, {type:'array'});
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    var added = 0;
+    var updated = 0;
+    rows.forEach(function(row, idx) {
+      if (String(row[0]).trim() !== 'Artikel') return;
+      var artNr = String(row[1]||'').trim();
+      var desc = String(row[4]||'').trim();
+      var location = String(row[5]||'').trim();
+      var qty = String(row[16]||row[6]||'').trim();
+      var unit = String(row[9]||'').trim();
+      if (!artNr && !desc) return;
+      var newQty = parseInt(qty) || 1;
+      var name = artNr ? (artNr + (desc ? ' – ' + desc : '')) : desc;
+      // Check if article already exists (match on artikelnummer prefix)
+      var existing = null;
+      if (artNr) {
+        existing = currentOrder.articles.find(function(a) {
+          return a.name.indexOf(artNr) === 0;
+        });
+      }
+      if (existing) {
+        // Update quantity
+        var oldQty = parseInt(existing.qty) || 0;
+        var oldUnit = existing.qty.replace(/[0-9]/g, '').trim() || unit || 'ST';
+        existing.qty = (oldQty + newQty) + ' ' + oldUnit;
+        // If already packed, unpack it so packaren sees the updated quantity
+        existing.kolli = null;
+        updated++;
+      } else {
+        // New article
+        currentOrder.articles.push({
+          id: 'a' + Date.now() + idx,
+          name: name,
+          qty: qty + (unit ? ' ' + unit : ''),
+          location: location,
+          kolli: null
+        });
+        added++;
+      }
+    });
+    scheduleSave();
+    renderPackView();
+    alert('Klart! ' + added + ' nya artiklar tillagda, ' + updated + ' artiklar uppdaterade.');
+  } catch(e) {
+    alert('Fel vid inläsning: ' + e.message);
+  }
+}
 
 async function startApp() {
   try {
