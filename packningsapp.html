@@ -746,39 +746,68 @@ async function handleAddExcel(file) {
     // Build a map of existing articles by artikelnummer for fast lookup
     var existingMap = {};
     currentOrder.articles.forEach(function(a) {
-      var match = a.name.match(/^(\d{4}-\d{4})/);
-      if (match) existingMap[match[1]] = a;
+      var nrMatch = a.name.match(/^([0-9]{4}-[0-9]{4})/);
+      if (nrMatch) existingMap[nrMatch[1]] = a;
     });
 
+    // First pass: count how many times each artikelnummer appears in Excel
+    var artCount = {};
+    rows.forEach(function(row) {
+      var artNr = String(row[1]||'').trim();
+      if (!/^[0-9]{4}-[0-9]{4}$/.test(artNr)) return;
+      var typ = String(row[0]||'').trim();
+      if (typ && typ !== 'Artikel') return;
+      artCount[artNr] = (artCount[artNr] || 0) + 1;
+    });
+
+    // Second pass: process rows
+    var seenArt = {};
     rows.forEach(function(row, idx) {
       var typ = String(row[0]||'').trim();
       var artNr = String(row[1]||'').trim();
-      // Accept rows with typ='Artikel' OR rows with empty typ but valid artikelnummer
       if (!artNr || artNr === 'Nr') return;
       if (typ && typ !== 'Artikel') return;
+      if (!/^[0-9]{4}-[0-9]{4}$/.test(artNr)) return;
+
       var desc = String(row[4]||'').trim();
       var location = String(row[5]||'').trim();
-      // Use qty from column Q (index 16) if available, else column G (index 6)
-      var qtyRaw = String(row[16]||row[6]||'').trim();
+      var qtyRaw = String(row[16]||'').trim();
+      if (!qtyRaw) qtyRaw = String(row[6]||'').trim();
       var unit = String(row[9]||'').trim() || 'ST';
-      if (!qtyRaw) return;
-      var newQty = parseInt(qtyRaw) || 1;
+      var rowQty = parseInt(qtyRaw) || 0;
+      if (rowQty === 0) return;
+
       var name = artNr + (desc ? ' – ' + desc : '');
+      var isFirstOccurrence = !seenArt[artNr];
+      seenArt[artNr] = true;
+      var appearsMultiple = artCount[artNr] > 1;
 
       if (existingMap[artNr]) {
-        // Article exists - add to its quantity and unpack
         var a = existingMap[artNr];
-        var oldQty = parseInt(a.qty) || 0;
+        var existingQty = parseInt(a.qty) || 0;
         var oldUnit = a.qty.replace(/[0-9]/g, '').trim() || unit;
-        a.qty = (oldQty + newQty) + ' ' + oldUnit;
-        a.kolli = null; // move back to unpacked
-        updated++;
+
+        if (appearsMultiple) {
+          // Multiple rows: first row = original (skip), second row = tillagg (add directly)
+          if (isFirstOccurrence) return; // Skip first occurrence
+          a.qty = (existingQty + rowQty) + ' ' + oldUnit;
+          a.kolli = null;
+          updated++;
+        } else {
+          // Single row: compare total with existing, add difference
+          var diff = rowQty - existingQty;
+          if (diff <= 0) return;
+          a.qty = (existingQty + diff) + ' ' + oldUnit;
+          a.kolli = null;
+          updated++;
+        }
       } else {
-        // New article
+        // New article – only add once (first occurrence)
+        if (!isFirstOccurrence) return;
         currentOrder.articles.push({
           id: 'a' + Date.now() + idx,
           name: name,
-          qty: newQty + ' ' + unit,
+          qty: rowQty + ' ' + unit,
           location: location,
           kolli: null
         });
