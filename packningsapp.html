@@ -771,8 +771,10 @@ async function handleAddExcel(file) {
 
       var desc = String(row[4]||'').trim();
       var location = String(row[5]||'').trim();
-      var qtyRaw = String(row[16]||'').trim();
-      if (!qtyRaw) qtyRaw = String(row[6]||'').trim();
+      // Use column G (index 6) as the "total new quantity" - this reflects edits made in Excel
+      // Column Q (index 16) = original "ant. att utleverera" which may not be updated
+      var qtyRaw = String(row[6]||'').trim();
+      if (!qtyRaw) qtyRaw = String(row[16]||'').trim();
       var unit = String(row[9]||'').trim() || 'ST';
       var rowQty = parseInt(qtyRaw) || 0;
       if (rowQty === 0) return;
