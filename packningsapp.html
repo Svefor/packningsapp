@@ -1,0 +1,1061 @@
+
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Packningsapp</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
+<style>
+:root{--bg:#f7f6f3;--surface:#fff;--surface2:#f2f1ed;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--text:#1a1a18;--text2:#6b6a65;--text3:#a09f99;--accent:#1a1a18;--accent-fg:#fff;--green-bg:#eaf3de;--green-fg:#3b6d11;--amber-bg:#faeeda;--amber-fg:#854f0b;--blue-bg:#e6f1fb;--blue-fg:#185fa5;--red-bg:#fcebeb;--red-fg:#a32d2d;--radius:10px;--radius-sm:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.auth-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:2.5rem;max-width:380px;width:100%;text-align:center}
+.auth-logo{width:48px;height:48px;background:var(--accent);border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1.25rem}
+.auth-logo svg{width:24px;height:24px;fill:white}
+.auth-card h1{font-size:20px;font-weight:600;margin-bottom:6px}
+.auth-card p{color:var(--text2);font-size:13px;margin-bottom:1.5rem;line-height:1.5}
+#auth-error{color:var(--red-fg);font-size:13px;margin-top:12px;background:var(--red-bg);padding:8px 12px;border-radius:var(--radius-sm);display:none}
+#app{display:none}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:10}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-logo{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.topbar-logo svg{width:14px;height:14px;fill:white}
+.topbar h1{font-size:15px;font-weight:600}
+.role-tabs{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:var(--radius-sm);border:1px solid var(--border)}
+.role-tab{padding:4px 14px;font-size:13px;border-radius:4px;border:none;background:none;cursor:pointer;color:var(--text2);font-family:inherit;transition:all .15s}
+.role-tab.active{background:var(--surface);color:var(--text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+#user-name{font-size:12px;color:var(--text2)}
+.main{max-width:960px;margin:0 auto;padding:1.5rem}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);color:var(--text);cursor:pointer;font-family:inherit;transition:background .12s;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn-primary:hover{opacity:.88;background:var(--accent)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:var(--red-fg);border-color:var(--red-bg)}
+.btn-danger:hover{background:var(--red-bg)}
+.btn-ms{background:#0078d4;color:white;border-color:#0078d4;font-size:14px;padding:10px 20px;border-radius:var(--radius-sm);width:100%}
+.btn-ms:hover{background:#006cbd}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px}
+.section-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-bar span{font-size:13px;color:var(--text2)}
+.order-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.order-row:last-child{border-bottom:none}
+.order-row:hover{background:var(--surface2)}
+.order-num{font-weight:600;font-size:14px;min-width:100px}
+.order-customer{flex:1;color:var(--text2);font-size:13px}
+.order-meta{font-size:12px;color:var(--text3)}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-packing{background:var(--amber-bg);color:var(--amber-fg)}
+.badge-done{background:var(--green-bg);color:var(--green-fg)}
+.badge-shipped{background:var(--blue-bg);color:var(--blue-fg)}
+.pack-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.pack-toolbar-left{display:flex;align-items:center;gap:8px}
+.pack-title{font-size:15px;font-weight:600}
+.columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;height:calc(100vh - 180px)}
+@media(max-width:600px){.columns{grid-template-columns:1fr}}
+.col-label{font-size:12px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.article-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:5px;background:var(--surface);cursor:grab;user-select:none;transition:box-shadow .1s,background .1s}
+.article-item:hover{background:var(--surface2)}
+.article-item.dragging{opacity:.35}
+.drag-handle{color:var(--text3);font-size:12px;cursor:grab;flex-shrink:0}
+.ai-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-qty{font-size:12px;color:var(--text2);white-space:nowrap}
+.ai-loc{font-size:11px;color:var(--text2);background:var(--surface2);border-radius:4px;padding:1px 6px;white-space:nowrap;border:1px solid var(--border)}
+.art-actions{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.art-btn{border:none;background:none;cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1}
+.art-btn:hover{background:var(--surface2)}
+.articles-empty{font-size:13px;color:var(--text3);text-align:center;padding:16px 0}
+.kolli-wrap{margin-bottom:8px}
+.kolli-head{padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.kolli-count{font-size:11px;color:var(--text3);flex:1}
+.kolli-body{padding:8px;border:1px solid var(--border);min-height:54px;transition:background .1s}
+.kolli-body.drag-target{background:var(--blue-bg);border-color:#aac8e8}
+.kolli-meta{display:flex;gap:6px;padding:6px 10px;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);background:var(--surface2);flex-wrap:wrap;align-items:center}
+.kolli-meta label{font-size:11px;color:var(--text2);white-space:nowrap}
+.kolli-meta input{padding:3px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text);min-width:0}
+.kolli-empty{font-size:12px;color:var(--text3);text-align:center;padding:12px 0}
+.kolli-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:4px;font-size:12px;background:var(--surface);cursor:grab}
+.ki-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ki-qty{color:var(--text2)}
+.ki-back{color:var(--text3);cursor:pointer;font-size:13px;border:none;background:none;line-height:1;padding:0 2px}
+.ki-back:hover{color:var(--text)}
+.add-kolli-btn{width:100%;padding:8px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:6px}
+.add-kolli-btn:hover{background:var(--surface2);color:var(--text)}
+.add-article-btn{width:100%;padding:7px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:4px}
+.add-article-btn:hover{background:var(--surface2);color:var(--text)}
+.frakt-kolli-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px} @media print{.frakt-kolli-card{page-break-after:always}}
+.frakt-kolli-header{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500}
+.frakt-table{width:100%;border-collapse:collapse;font-size:13px}
+.frakt-table td{padding:7px 14px;border-bottom:1px solid var(--border)}
+.frakt-table tr:last-child td{border-bottom:none}
+.form-row{display:flex;gap:8px;margin-bottom:12px}
+.form-row input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)}
+.form-row input:focus{outline:none;border-color:var(--accent)}
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;background:var(--surface2);transition:all .15s}
+.drop-zone:hover,.drop-zone.drag-over{background:var(--blue-bg);border-color:#aac8e8}
+.dz-icon{font-size:28px;margin-bottom:8px;display:block}
+.loading-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);padding:12px 0}
+.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-msg{font-size:13px;color:var(--red-fg);padding:8px 12px;background:var(--red-bg);border-radius:var(--radius-sm);margin-top:8px}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--text2);font-size:14px}
+.es-icon{font-size:2rem;display:block;margin-bottom:8px}
+.warn-card{background:#fffbf0;border:1px solid #f5d76a;border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;font-size:13px;color:var(--amber-fg)}
+.save-status{font-size:12px;color:var(--text3);margin-bottom:6px;min-height:18px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border-radius:var(--radius);padding:1.5rem;width:420px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:1rem}
+.modal-field{margin-bottom:10px}
+.modal-field label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+.modal-field input,.modal-field select{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
+@media print{body{background:white}#app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right{display:none!important}.main{padding:0;max-width:100%}.frakt-kolli-card{page-break-inside:avoid;border:1px solid #ccc}.no-print{display:none!important}.print-header{margin-bottom:16px}.print-header h2{font-size:18px;font-weight:700}.print-header p{font-size:13px;color:#666;margin-top:4px}}
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo"><svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9 9H7v-2h4v2zm6-4H7v-2h10v2z"/></svg></div>
+    <h1>Packningsapp</h1>
+    <p>Logga in med ditt Scanacon-konto.</p>
+    <button class="btn btn-ms" onclick="signIn()">
+      <svg viewBox="0 0 21 21" fill="none" width="18" height="18"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+      Logga in med Microsoft
+    </button>
+    <div id="auth-error"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo"><svg viewBox="0 0 24 24" fill="white"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9 9H7v-2h4v2zm6-4H7v-2h10v2z"/></svg></div>
+      <h1>Packningsapp</h1>
+    </div>
+    <div class="role-tabs">
+      <button class="role-tab active" id="tab-packare" onclick="setRole('packare')">📦 Packare</button>
+      <button class="role-tab" id="tab-frakt" onclick="setRole('frakt')">🚚 Frakt</button>
+    </div>
+    <div class="topbar-right">
+      <span id="user-name"></span>
+      <button class="btn btn-sm" onclick="signOut()">Logga ut</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="view-packare">
+      <div id="packare-list-view">
+        <div class="section-bar">
+          <span>Aktiva ordrar</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="loadPackareList()">↻ Uppdatera</button>
+            <button class="btn btn-sm btn-primary" onclick="showNewOrder()">+ Ny order</button>
+          </div>
+        </div>
+        <div class="card"><div id="packare-orders-list"><div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div></div></div>
+      </div>
+
+      <div id="packare-new-view" style="display:none">
+        <div class="pack-toolbar">
+          <div class="pack-toolbar-left">
+            <button class="btn btn-sm" onclick="showPackareList()">← Tillbaka</button>
+            <span class="pack-title">Ny plocklista</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <input type="text" id="order-num-input" placeholder="Ordernummer, t.ex. SO-1042">
+          <input type="text" id="customer-input" placeholder="Kund (valfritt)">
+        </div>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+          <span class="dz-icon">📊</span>
+          <p><strong>Dra in plocklista (Excel)</strong> eller klicka för att välja</p>
+          <p style="font-size:12px;margin-top:4px">Exportera från BC som Excel och dra in här</p>
+        </div>
+        <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
+        <div id="new-order-error"></div>
+        <div id="new-order-loading" style="display:none"><div class="loading-row"><div class="spinner"></div><span id="loading-txt">Läser...</span></div></div>
+      </div>
+
+      <div id="packare-pack-view" style="display:none">
+        <div class="pack-toolbar">
+          <div class="pack-toolbar-left">
+            <button class="btn btn-sm" onclick="showPackareList()">← Tillbaka</button>
+            <span class="pack-title" id="pack-order-label"></span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-danger" onclick="deleteCurrentOrder()">🗑 Ta bort</button>
+            <button class="btn btn-sm" onclick="saveCurrentOrder()">💾 Spara</button>
+            <button class="btn btn-sm btn-primary" onclick="markDone()">✓ Markera klar</button>
+          </div>
+        </div>
+        <div class="save-status" id="save-status"></div>
+        <div class="columns">
+          <div>
+            <div class="col-label"><span>Artiklar att packa</span><span id="unpack-count"></span></div>
+            <div id="pack-articles" style="height:calc(100vh - 240px);overflow-y:auto;padding-right:4px"></div>
+          </div>
+          <div>
+            <div class="col-label">Kollin</div>
+            <div id="pack-kollin" style="height:calc(100vh - 300px);overflow-y:auto;padding-right:4px"></div>
+            <button class="add-kolli-btn" onclick="addKolliCurrent()">+ Lägg till kolli</button>
+            <button class="add-article-btn" id="add-art-btn">+ Lägg till artikel / kartong</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-frakt" style="display:none">
+      <div id="frakt-list-view">
+        <div class="section-bar">
+          <span>Klara för frakt</span>
+          <button class="btn btn-sm" onclick="loadFraktList()">↻ Uppdatera</button>
+        </div>
+        <div class="card"><div id="frakt-orders-list"><div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div></div></div>
+      </div>
+      <div id="frakt-detail-view" style="display:none">
+        <div class="pack-toolbar no-print">
+          <div class="pack-toolbar-left">
+            <button class="btn btn-sm" onclick="showFraktList()">← Tillbaka</button>
+            <span class="pack-title" id="frakt-order-label"></span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="window.print()">🖨 Skriv ut följesedel</button>
+            <button class="btn btn-sm" onclick="markShipped()">✓ Markera skickad</button>
+          </div>
+        </div>
+        <div id="print-header" class="print-header" style="display:none"></div>
+        <div id="frakt-kolli-view"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var SITE_URL = 'https://scanacon.sharepoint.com/sites/Operation';
+var LIST_NAME = 'PackningsOrders';
+var CLIENT_ID = '7d73fb47-d382-4a89-891a-58c13b01a47a';
+var TENANT_ID = 'scanacon.onmicrosoft.com';
+
+var KARTONGER = [
+  {nr:'1401-0001',desc:'Syrakartong LQ9, 25x25x26 cm'},
+  {nr:'1401-0002',desc:'Syrakartong LQ12, 38x26x29.5 cm'},
+  {nr:'1401-0003',desc:'Kartong 20x18.5x12 cm'},
+  {nr:'1401-0004',desc:'Kartong 32x22.5x25 cm'},
+  {nr:'1401-0005',desc:'Kartong 120x80x80 cm'},
+  {nr:'1401-0006',desc:'Kartong 80x60x70 cm'},
+  {nr:'1401-0007',desc:'Kartong 57x39x20/30/39 cm'},
+  {nr:'1401-0008',desc:'Kartong DG6 40x30x40 cm'},
+  {nr:'1401-0009',desc:'Kartong 15.3x5.5x5.5 cm'},
+  {nr:'1401-0010',desc:'Kartong 18x13.2x8.5 cm'},
+  {nr:'1401-0011',desc:'Papper Pad-pak junior'},
+  {nr:'1401-0012',desc:'Kartong 20x15x10 cm'},
+  {nr:'1401-0013',desc:'Kartong 25x15x20/15 cm'},
+  {nr:'1401-0014',desc:'Kartong 39x29x30/25 cm'},
+  {nr:'1403-0001',desc:'Halvpall 80x60x14 cm'},
+  {nr:'1403-0002',desc:'Helpall 120x80x10 cm'},
+  {nr:'1403-0003',desc:'Pall filterkartong 165x54x12 cm'}
+];
+
+var msalConfig = {
+  auth: {
+    clientId: CLIENT_ID,
+    authority: 'https://login.microsoftonline.com/' + TENANT_ID,
+    redirectUri: 'https://cheerful-dodol-f55719.netlify.app'
+  },
+  cache: {cacheLocation:'sessionStorage'}
+};
+
+var msalInstance;
+var account = null;
+var currentOrder = null;
+var currentOrderId = null;
+var siteId = null;
+var listId = null;
+var dragItem = null;
+var saveTimeout = null;
+var scopes = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
+
+function signIn() {
+  msalInstance.loginRedirect({scopes: scopes});
+}
+function signOut() {
+  msalInstance.logoutPopup();
+}
+
+async function getToken() {
+  try {
+    var resp = await msalInstance.acquireTokenSilent({scopes: scopes, account: account});
+    return resp.accessToken;
+  } catch(e) {
+    var resp = await msalInstance.acquireTokenPopup({scopes: scopes});
+    return resp.accessToken;
+  }
+}
+
+async function graphRequest(method, path, body) {
+  var token = await getToken();
+  var opts = {
+    method: method,
+    headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Accept': 'application/json'}
+  };
+  if (body) opts.body = JSON.stringify(body);
+  var r = await fetch('https://graph.microsoft.com/v1.0' + path, opts);
+  if (!r.ok) {
+    var err = await r.json().catch(function() { return {}; });
+    throw new Error(err.error ? err.error.message : r.statusText);
+  }
+  if (r.status === 204) return null;
+  return r.json();
+}
+
+async function initApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-name').textContent = account.name || account.username;
+  document.getElementById('add-art-btn').onclick = function() { openAddArtModal(); };
+  try {
+    var siteResp = await graphRequest('GET', '/sites/scanacon.sharepoint.com:/sites/Operation');
+    siteId = siteResp.id;
+    await ensureList();
+  } catch(e) {
+    console.warn('SP init error:', e.message);
+  }
+  loadPackareList();
+}
+
+async function ensureList() {
+  try {
+    var lists = await graphRequest('GET', '/sites/' + siteId + '/lists?$filter=displayName eq \'' + LIST_NAME + '\'');
+    if (lists.value.length > 0) {
+      listId = lists.value[0].id;
+    } else {
+      var created = await graphRequest('POST', '/sites/' + siteId + '/lists', {
+        displayName: LIST_NAME,
+        columns: [
+          {name:'OrderNum',text:{}},
+          {name:'Customer',text:{}},
+          {name:'Status',text:{}},
+          {name:'OrderData',text:{allowMultipleLines:true,maxLength:100000}}
+        ],
+        list: {template:'genericList'}
+      });
+      listId = created.id;
+    }
+  } catch(e) {
+    console.warn('ensureList error:', e.message);
+  }
+}
+
+async function getAllOrders() {
+  if (!siteId || !listId) return [];
+  var resp = await graphRequest('GET', '/sites/' + siteId + '/lists/' + listId + '/items?$expand=fields&$top=200');
+  return resp.value.map(function(item) {
+    try {
+      var data = JSON.parse(item.fields.OrderData || '{}');
+      data._spId = item.id;
+      return data;
+    } catch(e) { return null; }
+  }).filter(Boolean).sort(function(a,b) { return b.createdAt - a.createdAt; });
+}
+
+async function saveOrderToSP(order) {
+  if (!siteId || !listId) return order;
+  var fields = {
+    Title: order.orderNum,
+    OrderNum: order.orderNum,
+    Customer: order.customer || '',
+    Status: order.status,
+    OrderData: JSON.stringify(order)
+  };
+  if (order._spId) {
+    await graphRequest('PATCH', '/sites/' + siteId + '/lists/' + listId + '/items/' + order._spId + '/fields', fields);
+  } else {
+    var created = await graphRequest('POST', '/sites/' + siteId + '/lists/' + listId + '/items', {fields: fields});
+    order._spId = created.id;
+  }
+  return order;
+}
+
+async function deleteOrderFromSP(spId) {
+  if (!siteId || !listId) return;
+  await graphRequest('DELETE', '/sites/' + siteId + '/lists/' + listId + '/items/' + spId);
+}
+
+function setRole(r) {
+  document.getElementById('tab-packare').classList.toggle('active', r === 'packare');
+  document.getElementById('tab-frakt').classList.toggle('active', r === 'frakt');
+  document.getElementById('view-packare').style.display = r === 'packare' ? 'block' : 'none';
+  document.getElementById('view-frakt').style.display = r === 'frakt' ? 'block' : 'none';
+  if (r === 'packare') loadPackareList();
+  else loadFraktList();
+}
+
+async function loadPackareList() {
+  var el = document.getElementById('packare-orders-list');
+  el.innerHTML = '<div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div>';
+  try {
+    var orders = await getAllOrders();
+    var active = orders.filter(function(o) { return o.status !== 'shipped'; });
+    if (active.length === 0) {
+      el.innerHTML = '<div class="empty-state"><span class="es-icon">\uD83D\uDCCB</span>Inga aktiva ordrar</div>';
+      return;
+    }
+    el.innerHTML = '';
+    active.forEach(function(o) {
+      var row = document.createElement('div');
+      row.className = 'order-row';
+      var badge = o.status === 'done' ? 'badge-done' : 'badge-packing';
+      var label = o.status === 'done' ? 'Klar' : 'Packas';
+      row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span>' +
+        '<span class="order-customer">' + esc(o.customer || '') + '</span>' +
+        '<span class="order-meta">' + (o.articles||[]).length + ' art \u00B7 ' + (o.kollin||[]).length + ' kolli</span>' +
+        '<span class="badge ' + badge + '">' + label + '</span>';
+      row.onclick = function() { openPackOrder(o._spId); };
+      el.appendChild(row);
+    });
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><span class="es-icon">\uD83D\uDCCB</span>Inga aktiva ordrar</div>';
+  }
+}
+
+async function loadFraktList() {
+  var el = document.getElementById('frakt-orders-list');
+  el.innerHTML = '<div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div>';
+  try {
+    var orders = await getAllOrders();
+    var ready = orders.filter(function(o) { return o.status === 'done' || o.status === 'shipped'; });
+    if (ready.length === 0) {
+      el.innerHTML = '<div class="empty-state"><span class="es-icon">\uD83D\uDE9A</span>Inga ordrar klara f\u00F6r frakt</div>';
+      return;
+    }
+    el.innerHTML = '';
+    ready.forEach(function(o) {
+      var row = document.createElement('div');
+      row.className = 'order-row';
+      var badge = o.status === 'shipped' ? 'badge-shipped' : 'badge-done';
+      var label = o.status === 'shipped' ? 'Skickad' : 'Klar f\u00F6r frakt';
+      row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span>' +
+        '<span class="order-customer">' + esc(o.customer || '') + '</span>' +
+        '<span class="order-meta">' + (o.kollin||[]).length + ' kolli</span>' +
+        '<span class="badge ' + badge + '">' + label + '</span>';
+      row.onclick = function() { openFraktOrder(o._spId); };
+      el.appendChild(row);
+    });
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><span class="es-icon">\uD83D\uDE9A</span>Inga ordrar klara f\u00F6r frakt</div>';
+  }
+}
+
+function showNewOrder() {
+  document.getElementById('packare-list-view').style.display = 'none';
+  document.getElementById('packare-new-view').style.display = 'block';
+  document.getElementById('packare-pack-view').style.display = 'none';
+}
+function showPackareList() {
+  currentOrder = null; currentOrderId = null;
+  document.getElementById('packare-list-view').style.display = 'block';
+  document.getElementById('packare-new-view').style.display = 'none';
+  document.getElementById('packare-pack-view').style.display = 'none';
+  loadPackareList();
+}
+function showFraktList() {
+  currentOrder = null; currentOrderId = null;
+  document.getElementById('frakt-list-view').style.display = 'block';
+  document.getElementById('frakt-detail-view').style.display = 'none';
+}
+
+async function openPackOrder(spId) {
+  var orders = await getAllOrders();
+  var o = orders.find(function(x) { return x._spId === spId; });
+  if (!o) return;
+  currentOrder = o; currentOrderId = spId;
+  document.getElementById('pack-order-label').textContent = o.orderNum + (o.customer ? ' \u2013 ' + o.customer : '');
+  document.getElementById('packare-list-view').style.display = 'none';
+  document.getElementById('packare-new-view').style.display = 'none';
+  document.getElementById('packare-pack-view').style.display = 'block';
+  renderPackView();
+}
+
+async function openFraktOrder(spId) {
+  var orders = await getAllOrders();
+  var o = orders.find(function(x) { return x._spId === spId; });
+  if (!o) return;
+  currentOrder = o; currentOrderId = spId;
+  document.getElementById('frakt-order-label').textContent = o.orderNum + (o.customer ? ' \u2013 ' + o.customer : '');
+  document.getElementById('frakt-list-view').style.display = 'none';
+  document.getElementById('frakt-detail-view').style.display = 'block';
+  var ph = document.getElementById('print-header');
+  ph.style.display = 'block';
+  ph.innerHTML = '<h2>F\u00F6ljesedel \u2013 ' + esc(o.orderNum) + '</h2><p>' +
+    (o.customer ? 'Kund: ' + esc(o.customer) + '  \u00B7  ' : '') +
+    'Antal kollin: ' + (o.kollin||[]).length + '  \u00B7  Datum: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
+  renderFraktView();
+}
+
+function renderPackView() {
+  var o = currentOrder;
+  var unpacked = o.articles.filter(function(a) { return a.kolli === null; });
+  document.getElementById('unpack-count').textContent = unpacked.length > 0 ? unpacked.length + ' kvar' : '\u2713 Alla packade';
+
+  var al = document.getElementById('pack-articles');
+  al.innerHTML = '';
+  if (unpacked.length === 0) {
+    var p = document.createElement('p');
+    p.className = 'articles-empty';
+    p.textContent = 'Alla artiklar \u00E4r packade';
+    al.appendChild(p);
+  } else {
+    unpacked.forEach(function(a) {
+      var d = document.createElement('div');
+      d.className = 'article-item';
+      d.draggable = true;
+      d.dataset.id = a.id;
+
+      var handle = document.createElement('span');
+      handle.className = 'drag-handle';
+      handle.textContent = '\u283F';
+
+      var name = document.createElement('span');
+      name.className = 'ai-name';
+      name.textContent = a.name;
+
+      var qty = document.createElement('span');
+      qty.className = 'ai-qty';
+      qty.textContent = a.qty;
+
+      var actions = document.createElement('div');
+      actions.className = 'art-actions';
+
+      var editBtn = document.createElement('button');
+      editBtn.className = 'art-btn';
+      editBtn.title = 'Redigera antal';
+      editBtn.textContent = '\u270F\uFE0F';
+      (function(aid) {
+        editBtn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); openEditQty(aid); };
+      })(a.id);
+
+      var delBtn = document.createElement('button');
+      delBtn.className = 'art-btn';
+      delBtn.title = 'Ta bort';
+      delBtn.textContent = '\uD83D\uDDD1';
+      (function(aid) {
+        delBtn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); deleteArticle(aid); };
+      })(a.id);
+
+      var serialBtn = document.createElement('button');
+      serialBtn.className = 'art-btn';
+      serialBtn.title = 'Serie-/lotnummer';
+      serialBtn.textContent = a.serials && a.serials.length > 0 ? '\uD83D\uDD22' : '\uD83D\uDD22';
+      serialBtn.style.opacity = a.serials && a.serials.length > 0 ? '1' : '0.4';
+      (function(aid) {
+        serialBtn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); openSerialModal(aid); };
+      })(a.id);
+
+      actions.appendChild(serialBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+
+      d.appendChild(handle);
+      d.appendChild(name);
+      d.appendChild(qty);
+      if (a.location) {
+        var loc = document.createElement('span');
+        loc.className = 'ai-loc';
+        loc.textContent = a.location;
+        d.appendChild(loc);
+      }
+      d.appendChild(actions);
+
+      d.addEventListener('dragstart', function(e) { dragItem = a.id; d.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+      d.addEventListener('dragend', function() { d.classList.remove('dragging'); });
+      al.appendChild(d);
+    });
+  }
+
+  var kl = document.getElementById('pack-kollin');
+  kl.innerHTML = '';
+  o.kollin.forEach(function(k) {
+    var items = o.articles.filter(function(a) { return a.kolli === k.id; });
+
+    var wrap = document.createElement('div');
+    wrap.className = 'kolli-wrap';
+
+    // Head
+    var head = document.createElement('div');
+    head.className = 'kolli-head';
+    head.innerHTML = '<span>\uD83D\uDCE6</span><span class="kolli-num-label">' + esc(k.label) + '</span><span class="kolli-count">' + items.length + ' art.</span>';
+    if (o.kollin.length > 1) {
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'ki-back';
+      removeBtn.title = 'Ta bort kolli';
+      removeBtn.textContent = '\u2715';
+      (function(kid) {
+        removeBtn.onclick = function() { removeKolliOrder(kid); };
+      })(k.id);
+      head.appendChild(removeBtn);
+    }
+
+    // Body
+    var body = document.createElement('div');
+    body.className = 'kolli-body';
+    body.id = 'kb-' + k.id;
+    body.dataset.kolli = k.id;
+
+    if (items.length === 0) {
+      var empty = document.createElement('p');
+      empty.className = 'kolli-empty';
+      empty.textContent = 'Dra artiklar hit';
+      body.appendChild(empty);
+    } else {
+      items.forEach(function(a) {
+        var ki = document.createElement('div');
+        ki.className = 'kolli-item';
+        ki.draggable = true;
+
+        var kh = document.createElement('span');
+        kh.className = 'drag-handle';
+        kh.style.fontSize = '11px';
+        kh.textContent = '\u283F';
+
+        var kn = document.createElement('span');
+        kn.className = 'ki-name';
+        kn.textContent = a.name;
+
+        var kq = document.createElement('span');
+        kq.className = 'ki-qty';
+        kq.textContent = a.qty;
+
+        var kb = document.createElement('button');
+        kb.className = 'ki-back';
+        kb.title = 'Tillbaka';
+        kb.textContent = '\u21A9';
+        (function(aid) {
+          kb.onclick = function() { unpackItem(aid); };
+        })(a.id);
+
+        var kd = document.createElement('button');
+        kd.className = 'art-btn';
+        kd.title = 'Ta bort';
+        kd.textContent = '\uD83D\uDDD1';
+        (function(aid) {
+          kd.onclick = function(e) { e.stopPropagation(); deleteArticle(aid); };
+        })(a.id);
+
+        if (a.serials && a.serials.length > 0) {
+          var ks = document.createElement('span');
+          ks.style.cssText = 'font-size:11px;color:var(--text2);background:var(--surface2);border-radius:4px;padding:1px 5px;border:1px solid var(--border);white-space:nowrap';
+          ks.textContent = a.serials.join(', ');
+          ki.appendChild(kh); ki.appendChild(kn); ki.appendChild(kq); ki.appendChild(ks); ki.appendChild(kb); ki.appendChild(kd);
+        } else {
+          ki.appendChild(kh); ki.appendChild(kn); ki.appendChild(kq); ki.appendChild(kb); ki.appendChild(kd);
+        }
+        ki.addEventListener('dragstart', function(e) { dragItem = a.id; ki.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+        ki.addEventListener('dragend', function() { ki.classList.remove('dragging'); });
+        body.appendChild(ki);
+      });
+    }
+
+    // Meta (weight/dims)
+    var meta = document.createElement('div');
+    meta.className = 'kolli-meta';
+    var wLabel = document.createElement('label'); wLabel.textContent = 'Vikt:';
+    var wInput = document.createElement('input'); wInput.type = 'number'; wInput.placeholder = 'kg'; wInput.value = k.weight || ''; wInput.style.width = '70px';
+    (function(kid) { wInput.oninput = function() { updateKolliMeta(kid, 'weight', this.value); }; })(k.id);
+    var dLabel = document.createElement('label'); dLabel.textContent = 'L\u00D7B\u00D7H:';
+    var lInput = document.createElement('input'); lInput.type = 'number'; lInput.placeholder = 'L'; lInput.value = k.dimL || ''; lInput.style.width = '55px';
+    (function(kid) { lInput.oninput = function() { updateKolliMeta(kid, 'dimL', this.value); }; })(k.id);
+    var bInput = document.createElement('input'); bInput.type = 'number'; bInput.placeholder = 'B'; bInput.value = k.dimW || ''; bInput.style.width = '55px';
+    (function(kid) { bInput.oninput = function() { updateKolliMeta(kid, 'dimW', this.value); }; })(k.id);
+    var hInput = document.createElement('input'); hInput.type = 'number'; hInput.placeholder = 'H'; hInput.value = k.dimH || ''; hInput.style.width = '55px';
+    (function(kid) { hInput.oninput = function() { updateKolliMeta(kid, 'dimH', this.value); }; })(k.id);
+    meta.appendChild(wLabel); meta.appendChild(wInput); meta.appendChild(dLabel);
+    meta.appendChild(lInput); meta.appendChild(bInput); meta.appendChild(hInput);
+
+    body.addEventListener('dragover', function(e) { e.preventDefault(); body.classList.add('drag-target'); });
+    body.addEventListener('dragleave', function() { body.classList.remove('drag-target'); });
+    body.addEventListener('drop', function(e) {
+      e.preventDefault(); body.classList.remove('drag-target');
+      if (dragItem) {
+        var a = currentOrder.articles.find(function(x) { return x.id === dragItem; });
+        if (a) { a.kolli = k.id; dragItem = null; scheduleSave(); renderPackView(); }
+      }
+    });
+
+    wrap.appendChild(head);
+    wrap.appendChild(body);
+    wrap.appendChild(meta);
+    kl.appendChild(wrap);
+  });
+}
+
+function renderFraktView() {
+  var o = currentOrder;
+  var container = document.getElementById('frakt-kolli-view');
+  container.innerHTML = '';
+  o.kollin.forEach(function(k) {
+    var items = o.articles.filter(function(a) { return a.kolli === k.id; });
+    if (items.length === 0) return;
+    var dims = [k.dimL, k.dimW, k.dimH].filter(Boolean).join('\u00D7');
+    var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00B7  ');
+    var card = document.createElement('div');
+    card.className = 'frakt-kolli-card';
+    var hdr = document.createElement('div');
+    hdr.className = 'frakt-kolli-header';
+    hdr.innerHTML = '<span>\uD83D\uDCE6 ' + esc(k.label) + '</span><span style="font-size:12px;color:var(--text2)">' + items.length + ' artikel' + (items.length !== 1 ? 'er' : '') + (metaStr ? '  \u00B7  ' + metaStr : '') + '</span>';
+    var tbl = document.createElement('table');
+    tbl.className = 'frakt-table';
+    items.forEach(function(a) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td style="font-weight:500">' + esc(a.name) + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
+      tbl.appendChild(tr);
+    });
+    card.appendChild(hdr);
+    card.appendChild(tbl);
+    container.appendChild(card);
+  });
+  var unpacked = o.articles.filter(function(a) { return a.kolli === null; });
+  if (unpacked.length > 0) {
+    var warn = document.createElement('div');
+    warn.className = 'warn-card';
+    warn.textContent = '\u26A0\uFE0F ' + unpacked.length + ' artikel' + (unpacked.length !== 1 ? 'er' : '') + ' \u00E4r inte packad' + (unpacked.length !== 1 ? 'e' : '') + ': ' + unpacked.map(function(a) { return esc(a.name); }).join(', ');
+    container.appendChild(warn);
+  }
+}
+
+function updateKolliMeta(kid, field, value) {
+  var k = currentOrder.kollin.find(function(x) { return x.id === kid; });
+  if (k) { k[field] = value; scheduleSave(); }
+}
+
+function deleteArticle(aid) {
+  currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; });
+  scheduleSave(); renderPackView();
+}
+
+function openEditQty(aid) {
+  var a = currentOrder.articles.find(function(x) { return x.id === aid; });
+  if (!a) return;
+  var qtyNum = parseInt(a.qty) || 1;
+  var existing = document.getElementById('edit-qty-modal');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'edit-qty-modal';
+  overlay.className = 'modal-overlay';
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+
+  var h3 = document.createElement('h3'); h3.textContent = 'Redigera antal';
+  var artName = document.createElement('div'); artName.style.cssText = 'font-size:13px;color:var(--text2);margin-bottom:1rem'; artName.textContent = a.name;
+  var field = document.createElement('div'); field.className = 'modal-field';
+  var lbl = document.createElement('label'); lbl.textContent = 'Antal att packa nu (max ' + qtyNum + ')';
+  var inp = document.createElement('input'); inp.type = 'number'; inp.id = 'edit-qty-value'; inp.min = '1'; inp.max = String(qtyNum); inp.value = String(qtyNum);
+  inp.style.cssText = 'width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px';
+  var restDiv = document.createElement('div'); restDiv.id = 'edit-qty-rest'; restDiv.style.cssText = 'font-size:12px;color:var(--text2);margin-top:6px';
+  inp.oninput = function() { var r = qtyNum - (parseInt(this.value)||0); restDiv.textContent = r > 0 ? r + ' ST l\u00E4ggs till som restorder' : ''; };
+  field.appendChild(lbl); field.appendChild(inp);
+
+  var actions = document.createElement('div'); actions.className = 'modal-actions';
+  var cancelBtn = document.createElement('button'); cancelBtn.className = 'btn btn-sm'; cancelBtn.textContent = 'Avbryt';
+  cancelBtn.onclick = function() { overlay.remove(); };
+  var saveBtn = document.createElement('button'); saveBtn.className = 'btn btn-sm btn-primary'; saveBtn.textContent = 'Spara';
+  saveBtn.onclick = function() { confirmEditQty(aid, qtyNum); overlay.remove(); };
+  actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+
+  modal.appendChild(h3); modal.appendChild(artName); modal.appendChild(field); modal.appendChild(restDiv); modal.appendChild(actions);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function confirmEditQty(aid, origQty) {
+  var a = currentOrder.articles.find(function(x) { return x.id === aid; });
+  if (!a) return;
+  var newQty = parseInt(document.getElementById('edit-qty-value').value) || 1;
+  var unit = a.qty.replace(/[0-9]/g, '').trim() || 'ST';
+  var rest = origQty - newQty;
+  a.qty = newQty + ' ' + unit;
+  if (rest > 0) {
+    currentOrder.articles.push({
+      id: 'a' + Date.now(),
+      name: a.name + ' (restorder)',
+      qty: rest + ' ' + unit,
+      location: a.location,
+      kolli: null,
+      isBackorder: true
+    });
+  }
+  scheduleSave(); renderPackView();
+}
+
+function openAddArtModal() {
+  var existing = document.getElementById('add-art-modal');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'add-art-modal';
+  overlay.className = 'modal-overlay';
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+
+  var h3 = document.createElement('h3'); h3.textContent = 'L\u00E4gg till artikel / kartong';
+
+  var f1 = document.createElement('div'); f1.className = 'modal-field';
+  var l1 = document.createElement('label'); l1.textContent = 'V\u00E4lj kartong';
+  var sel = document.createElement('select'); sel.id = 'modal-kartong';
+  var defOpt = document.createElement('option'); defOpt.value = ''; defOpt.textContent = '\u2013 V\u00E4lj kartong \u2013';
+  sel.appendChild(defOpt);
+  KARTONGER.forEach(function(k) {
+    var opt = document.createElement('option'); opt.value = k.nr; opt.textContent = k.nr + ' \u2013 ' + k.desc;
+    sel.appendChild(opt);
+  });
+  sel.onchange = function() {
+    var k = KARTONGER.find(function(x) { return x.nr === this.value; }, this);
+    if (k) {
+      document.getElementById('modal-artnr').value = k.nr;
+      document.getElementById('modal-desc').value = k.desc;
+      document.getElementById('modal-qty').value = '1 ST';
+    }
+  };
+  f1.appendChild(l1); f1.appendChild(sel);
+
+  var f2 = document.createElement('div'); f2.className = 'modal-field';
+  var l2 = document.createElement('label'); l2.textContent = 'Artikelnummer';
+  var inp2 = document.createElement('input'); inp2.type = 'text'; inp2.id = 'modal-artnr'; inp2.placeholder = 't.ex. 1401-0007';
+  f2.appendChild(l2); f2.appendChild(inp2);
+
+  var f3 = document.createElement('div'); f3.className = 'modal-field';
+  var l3 = document.createElement('label'); l3.textContent = 'Beskrivning';
+  var inp3 = document.createElement('input'); inp3.type = 'text'; inp3.id = 'modal-desc'; inp3.placeholder = 'Beskrivning';
+  f3.appendChild(l3); f3.appendChild(inp3);
+
+  var f4 = document.createElement('div'); f4.className = 'modal-field';
+  var l4 = document.createElement('label'); l4.textContent = 'Antal';
+  var inp4 = document.createElement('input'); inp4.type = 'text'; inp4.id = 'modal-qty'; inp4.value = '1 ST';
+  f4.appendChild(l4); f4.appendChild(inp4);
+
+  var acts = document.createElement('div'); acts.className = 'modal-actions';
+  var cancelBtn = document.createElement('button'); cancelBtn.className = 'btn btn-sm'; cancelBtn.textContent = 'Avbryt';
+  cancelBtn.onclick = function() { overlay.remove(); };
+  var addBtn = document.createElement('button'); addBtn.className = 'btn btn-sm btn-primary'; addBtn.textContent = 'L\u00E4gg till';
+  addBtn.onclick = function() {
+    var nr = document.getElementById('modal-artnr').value.trim();
+    var desc = document.getElementById('modal-desc').value.trim();
+    var qty = document.getElementById('modal-qty').value.trim();
+    if (!nr && !desc) { alert('Fyll i artikelnummer eller beskrivning.'); return; }
+    currentOrder.articles.push({
+      id: 'a' + Date.now(),
+      name: nr ? (nr + (desc ? ' \u2013 ' + desc : '')) : desc,
+      qty: qty || '1 ST',
+      location: '',
+      kolli: null
+    });
+    overlay.remove();
+    scheduleSave(); renderPackView();
+  };
+  acts.appendChild(cancelBtn); acts.appendChild(addBtn);
+
+  modal.appendChild(h3); modal.appendChild(f1); modal.appendChild(f2); modal.appendChild(f3); modal.appendChild(f4); modal.appendChild(acts);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function addKolliCurrent() {
+  var n = currentOrder.kollin.length + 1;
+  currentOrder.kollin.push({id:'k'+Date.now(), label:'Kolli '+n});
+  scheduleSave(); renderPackView();
+}
+function removeKolliOrder(kid) {
+  currentOrder.articles.forEach(function(a) { if (a.kolli === kid) a.kolli = null; });
+  currentOrder.kollin = currentOrder.kollin.filter(function(k) { return k.id !== kid; });
+  currentOrder.kollin.forEach(function(k,i) { k.label = 'Kolli ' + (i+1); });
+  scheduleSave(); renderPackView();
+}
+function unpackItem(aid) {
+  var a = currentOrder.articles.find(function(x) { return x.id === aid; });
+  if (a) { a.kolli = null; scheduleSave(); renderPackView(); }
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimeout);
+  document.getElementById('save-status').textContent = 'Sparar...';
+  saveTimeout = setTimeout(async function() {
+    try {
+      await saveOrderToSP(currentOrder);
+      document.getElementById('save-status').textContent = 'Sparat \u2713';
+      setTimeout(function() { document.getElementById('save-status').textContent = ''; }, 2000);
+    } catch(e) {
+      document.getElementById('save-status').textContent = '\u26A0\uFE0F Kunde inte spara: ' + e.message;
+    }
+  }, 800);
+}
+
+async function saveCurrentOrder() {
+  try {
+    document.getElementById('save-status').textContent = 'Sparar...';
+    await saveOrderToSP(currentOrder);
+    document.getElementById('save-status').textContent = 'Sparat \u2713';
+    setTimeout(function() { document.getElementById('save-status').textContent = ''; }, 2000);
+  } catch(e) {
+    document.getElementById('save-status').textContent = '\u26A0\uFE0F ' + e.message;
+  }
+}
+async function markDone() { currentOrder.status = 'done'; await saveOrderToSP(currentOrder); showPackareList(); }
+async function markShipped() { currentOrder.status = 'shipped'; await saveOrderToSP(currentOrder); showFraktList(); }
+async function deleteCurrentOrder() {
+  if (!confirm('Ta bort order ' + currentOrder.orderNum + '?')) return;
+  await deleteOrderFromSP(currentOrder._spId);
+  showPackareList();
+}
+
+var dz = document.getElementById('drop-zone');
+var fi = document.getElementById('file-input');
+dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', function() { dz.classList.remove('drag-over'); });
+dz.addEventListener('drop', function(e) {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  var f = e.dataTransfer.files[0];
+  if (f && (f.name.endsWith('.xlsx') || f.name.endsWith('.xls'))) handleFile(f);
+  else showNewOrderError('Bara Excel-filer st\u00F6ds.');
+});
+fi.addEventListener('change', function(e) { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+async function handleFile(file) {
+  var on = document.getElementById('order-num-input').value.trim();
+  if (!on) { showNewOrderError('Fyll i ordernummer f\u00F6rst.'); return; }
+  document.getElementById('new-order-error').innerHTML = '';
+  document.getElementById('new-order-loading').style.display = 'block';
+  dz.style.display = 'none';
+  try {
+    document.getElementById('loading-txt').textContent = 'L\u00E4ser Excel...';
+    var articles = await parseExcel(file);
+    var order = {
+      id: 'ord' + Date.now(),
+      orderNum: on,
+      customer: document.getElementById('customer-input').value.trim(),
+      status: 'packing',
+      createdAt: Date.now(),
+      articles: articles,
+      kollin: [{id:'k0', label:'Kolli 1'}]
+    };
+    document.getElementById('loading-txt').textContent = 'Sparar...';
+    try { await saveOrderToSP(order); } catch(e) { console.warn('SP save:', e.message); }
+    currentOrder = order;
+    document.getElementById('new-order-loading').style.display = 'none';
+    document.getElementById('packare-new-view').style.display = 'none';
+    document.getElementById('pack-order-label').textContent = order.orderNum + (order.customer ? ' \u2013 ' + order.customer : '');
+    document.getElementById('packare-pack-view').style.display = 'block';
+    renderPackView();
+  } catch(e) {
+    document.getElementById('new-order-loading').style.display = 'none';
+    dz.style.display = 'block';
+    showNewOrderError('Fel: ' + e.message);
+  }
+}
+
+async function parseExcel(file) {
+  var ab = await file.arrayBuffer();
+  var wb = XLSX.read(ab, {type:'array'});
+  var ws = wb.Sheets[wb.SheetNames[0]];
+  var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+  var articles = [];
+  rows.forEach(function(row, idx) {
+    if (String(row[0]).trim() !== 'Artikel') return;
+    var artNr = String(row[1]||'').trim();
+    var desc = String(row[4]||'').trim();
+    var location = String(row[5]||'').trim();
+    var qty = String(row[16]||row[6]||'').trim();
+    var unit = String(row[9]||'').trim();
+    if (!artNr && !desc) return;
+    articles.push({
+      id: 'a' + idx,
+      name: artNr ? (artNr + (desc ? ' \u2013 ' + desc : '')) : desc,
+      qty: qty + (unit ? ' ' + unit : ''),
+      location: location,
+      kolli: null
+    });
+  });
+  if (articles.length === 0) throw new Error('Inga artikelrader hittades. Kontrollera att det \u00E4r r\u00E4tt Excel-fil fr\u00E5n BC.');
+  return articles;
+}
+
+function showNewOrderError(msg) {
+  document.getElementById('new-order-error').innerHTML = '<div class="error-msg">' + msg + '</div>';
+}
+function showAuthError(msg) {
+  var el = document.getElementById('auth-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+function openSerialModal(aid) {
+  var a = currentOrder.articles.find(function(x) { return x.id === aid; });
+  if (!a) return;
+  if (!a.serials) a.serials = [];
+  var existing = document.getElementById('serial-modal');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'serial-modal';
+  overlay.className = 'modal-overlay';
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+
+  var h3 = document.createElement('h3'); h3.textContent = 'Serie-/lotnummer';
+  var artName = document.createElement('div');
+  artName.style.cssText = 'font-size:13px;color:var(--text2);margin-bottom:1rem';
+  artName.textContent = a.name;
+
+  var f1 = document.createElement('div'); f1.className = 'modal-field';
+  var l1 = document.createElement('label'); l1.textContent = 'L\u00E4gg till nummer (ett per rad)';
+  var ta = document.createElement('textarea');
+  ta.id = 'serial-input';
+  ta.rows = 5;
+  ta.style.cssText = 'width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;resize:vertical';
+  ta.placeholder = 'T.ex.\nSN123456\nSN123457';
+  ta.value = a.serials.join('\n');
+  f1.appendChild(l1); f1.appendChild(ta);
+
+  var hint = document.createElement('div');
+  hint.style.cssText = 'font-size:11px;color:var(--text3);margin-top:4px';
+  hint.textContent = 'Antal: ' + a.qty;
+
+  var acts = document.createElement('div'); acts.className = 'modal-actions';
+  var cancelBtn = document.createElement('button'); cancelBtn.className = 'btn btn-sm'; cancelBtn.textContent = 'Avbryt';
+  cancelBtn.onclick = function() { overlay.remove(); };
+  var saveBtn = document.createElement('button'); saveBtn.className = 'btn btn-sm btn-primary'; saveBtn.textContent = 'Spara';
+  saveBtn.onclick = function() {
+    var val = document.getElementById('serial-input').value;
+    a.serials = val.split('\n').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+    overlay.remove();
+    scheduleSave(); renderPackView();
+  };
+  acts.appendChild(cancelBtn); acts.appendChild(saveBtn);
+
+  modal.appendChild(h3); modal.appendChild(artName); modal.appendChild(f1); modal.appendChild(hint); modal.appendChild(acts);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function startApp() {
+  try {
+    msalInstance = new msal.PublicClientApplication(msalConfig);
+    await msalInstance.initialize();
+    var resp = await msalInstance.handleRedirectPromise();
+    if (resp) { account = resp.account; initApp(); }
+    else {
+      var accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) { account = accounts[0]; initApp(); }
+    }
+  } catch(e) {
+    showAuthError('Kunde inte starta appen: ' + e.message);
+  }
+}
+startApp();
+</script>
+</body>
+</html>
