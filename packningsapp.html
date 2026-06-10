@@ -661,7 +661,18 @@ async function saveCurrentOrder() {
 }
 async function markDone() { currentOrder.status = 'done'; await saveOrderToSP(currentOrder); showPackareList(); }
 async function markShipped() { currentOrder.status = 'shipped'; await saveOrderToSP(currentOrder); showFraktList(); }
-async function reopenOrder() { currentOrder.status = 'packing'; await saveOrderToSP(currentOrder); showFraktList(); setRole('packare'); }
+async function reopenOrder() {
+  var o = currentOrder;
+  o.status = 'packing';
+  await saveOrderToSP(o);
+  setRole('packare');
+  document.getElementById('packare-list-view').style.display = 'none';
+  document.getElementById('packare-new-view').style.display = 'none';
+  document.getElementById('packare-pack-view').style.display = 'block';
+  document.getElementById('pack-order-label').textContent = o.orderNum + (o.customer ? ' – ' + o.customer : '');
+  currentOrder = o;
+  renderPackView();
+}
 async function deleteCurrentOrder() { if (!confirm('Ta bort order ' + currentOrder.orderNum + '?')) return; await deleteOrderFromSP(currentOrder._spId); showPackareList(); }
 
 var dz = document.getElementById('drop-zone');
