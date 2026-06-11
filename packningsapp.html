@@ -51,6 +51,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .badge-packing{background:var(--amber-bg);color:var(--amber-fg)}
 .badge-done{background:var(--green-bg);color:var(--green-fg)}
 .badge-shipped{background:var(--blue-bg);color:var(--blue-fg)}
+.badge-partial{background:#f0e6fb;color:#6b21a8}
 .pack-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .pack-toolbar-left{display:flex;align-items:center;gap:8px}
 .pack-title{font-size:15px;font-weight:600}
@@ -392,7 +393,7 @@ async function loadFraktList() {
   el.innerHTML = '<div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div>';
   try {
     var orders = await getAllOrders();
-    var ready = orders.filter(function(o) { return o.status === 'done' || o.status === 'shipped'; });
+    var ready = orders.filter(function(o) { return o.status === 'done' || o.status === 'shipped' || o.status === 'partial'; });
     if (ready.length === 0) { el.innerHTML = '<div class="empty-state"><span class="es-icon">&#128666;</span>Inga ordrar klara f&ouml;r frakt</div>'; return; }
     el.innerHTML = '';
     ready.forEach(function(o) {
@@ -667,7 +668,26 @@ async function saveCurrentOrder() {
   catch(e) { document.getElementById('save-status').textContent = '\u26a0\ufe0f ' + e.message; }
 }
 async function markDone() { currentOrder.status = 'done'; await saveOrderToSP(currentOrder); showPackareList(); }
-async function markShipped() { currentOrder.status = 'shipped'; await saveOrderToSP(currentOrder); showFraktList(); }
+async function markShipped() {
+  currentOrder.kollin.forEach(function(k) { k.shipped = true; k.shippedAt = new Date().toLocaleDateString('sv-SE'); });
+  currentOrder.status = 'shipped';
+  await saveOrderToSP(currentOrder);
+  showFraktList();
+}
+async function shipKolli(kid) {
+  var k = currentOrder.kollin.find(function(x) { return x.id === kid; });
+  if (!k) return;
+  k.shipped = true;
+  k.shippedAt = new Date().toLocaleDateString('sv-SE');
+  // Check if all kollin are shipped
+  var allShipped = currentOrder.kollin.every(function(x) { return x.shipped; });
+  currentOrder.status = allShipped ? 'shipped' : 'partial';
+  await saveOrderToSP(currentOrder);
+  renderFraktView();
+  // Refresh list badge in background
+  loadFraktList();
+}
+
 async function deleteFraktOrder() {
   if (!confirm('Ta bort order ' + currentOrder.orderNum + '? Detta kan inte ångras.')) return;
   await deleteOrderFromSP(currentOrder._spId);
