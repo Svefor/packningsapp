@@ -230,6 +230,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
             <button class="btn btn-sm" onclick="reopenOrder()">&#8635; &Aring;ter&ouml;ppna</button>
             <button class="btn btn-sm btn-primary" onclick="window.print()">&#128424; Skriv ut f&ouml;ljesedel</button>
             <button class="btn btn-sm" onclick="markShipped()">&#10003; Markera skickad</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteFraktOrder()">&#128465; Ta bort</button>
           </div>
         </div>
         <div id="print-header" class="print-header" style="display:none"></div>
@@ -664,6 +665,12 @@ async function saveCurrentOrder() {
 }
 async function markDone() { currentOrder.status = 'done'; await saveOrderToSP(currentOrder); showPackareList(); }
 async function markShipped() { currentOrder.status = 'shipped'; await saveOrderToSP(currentOrder); showFraktList(); }
+async function deleteFraktOrder() {
+  if (!confirm('Ta bort order ' + currentOrder.orderNum + '? Detta kan inte ångras.')) return;
+  await deleteOrderFromSP(currentOrder._spId);
+  showFraktList();
+}
+
 async function reopenOrder() {
   var o = currentOrder;
   o.status = 'packing';
