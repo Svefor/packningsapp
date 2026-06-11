@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
           </div>
           <div style="display:flex;gap:6px">
             <button class="btn btn-sm" onclick="reopenOrder()">&#8635; &Aring;ter&ouml;ppna</button>
-            <button class="btn btn-sm btn-primary" onclick="window.print()">&#128424; Skriv ut f&ouml;ljesedel</button>
+            <button class="btn btn-sm btn-primary" onclick="window.print()">&#128424; Print packing list</button>
 
             <button class="btn btn-sm btn-danger" onclick="deleteFraktOrder()">&#128465; Ta bort</button>
           </div>
@@ -429,7 +429,7 @@ async function openFraktOrder(spId) {
   document.getElementById('frakt-list-view').style.display='none'; document.getElementById('frakt-detail-view').style.display='block';
   var ph = document.getElementById('print-header');
   ph.style.display = 'block';
-  ph.innerHTML = '<h2>F&ouml;ljesedel &ndash; ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Kund: ' + esc(o.customer) + '  &middot;  ' : '') + 'Antal kollin: ' + (o.kollin||[]).length + '  &middot;  Datum: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
+  ph.innerHTML = '<h2>Packing List &ndash; ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Customer: ' + esc(o.customer) + '  &middot;  ' : '') + 'Packages: ' + (o.kollin||[]).length + '  &middot;  Date: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
   renderFraktView();
 }
 
@@ -535,13 +535,13 @@ function renderFraktView() {
     var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00b7  ');
     var card = document.createElement('div'); card.className = 'frakt-kolli-card';
     var hdr = document.createElement('div'); hdr.className = 'frakt-kolli-header';
-    hdr.innerHTML = '<span>&#128230; ' + esc(k.label) + '</span><span style="font-size:12px;color:var(--text2)">' + items.length + ' artikel' + (items.length !== 1 ? 'er' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
+    hdr.innerHTML = '<span>&#128230; ' + esc(k.label) + '</span><span style="font-size:12px;color:var(--text2)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
     var tbl = document.createElement('table'); tbl.className = 'frakt-table';
     items.forEach(function(a) {
       var tr = document.createElement('tr');
       var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text2)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
       var modStyle = a.isModified ? ' style="background:#fff8e6;font-weight:500"' : ' style="font-weight:500"';
-      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NY/TILL&Auml;GG</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
+      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
       tbl.appendChild(tr);
     });
     card.appendChild(hdr); card.appendChild(tbl); container.appendChild(card);
@@ -549,7 +549,7 @@ function renderFraktView() {
   var unpacked = o.articles.filter(function(a) { return a.kolli === null; });
   if (unpacked.length > 0) {
     var warn = document.createElement('div'); warn.className = 'warn-card';
-    warn.textContent = '\u26a0\ufe0f ' + unpacked.length + ' artikel' + (unpacked.length !== 1 ? 'er' : '') + ' \u00e4r inte packad' + (unpacked.length !== 1 ? 'e' : '') + ': ' + unpacked.map(function(a) { return esc(a.name); }).join(', ');
+    warn.textContent = '\u26a0\ufe0f ' + unpacked.length + ' item' + (unpacked.length !== 1 ? 's' : '') + ' not packed: ' + unpacked.map(function(a) { return esc(a.name); }).join(', ');
     container.appendChild(warn);
   }
 }
