@@ -220,6 +220,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
           <span>Klara f&ouml;r frakt</span>
           <button class="btn btn-sm" onclick="loadFraktList()">&#8635; Uppdatera</button>
         </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="frakt-search" placeholder="&#128269; Sök ordernummer eller kund..." oninput="renderFraktList()" style="flex:1;min-width:180px;padding:7px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
+          <select id="frakt-sort" onchange="renderFraktList()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
+            <option value="date-desc">Senast f&ouml;rst</option>
+            <option value="date-asc">&Auml;ldst f&ouml;rst</option>
+            <option value="order-asc">Ordernr A&ndash;&Ouml;</option>
+            <option value="order-desc">Ordernr &Ouml;&ndash;A</option>
+            <option value="customer-asc">Kund A&ndash;&Ouml;</option>
+            <option value="customer-desc">Kund &Ouml;&ndash;A</option>
+          </select>
+        </div>
         <div class="card"><div id="frakt-orders-list"><div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div></div></div>
       </div>
       <div id="frakt-detail-view" style="display:none">
@@ -387,23 +398,53 @@ async function loadPackareList() {
   } catch(e) { el.innerHTML = '<div class="empty-state"><span class="es-icon">&#128203;</span>Inga aktiva ordrar</div>'; }
 }
 
+var fraktOrders = [];
+
 async function loadFraktList() {
   var el = document.getElementById('frakt-orders-list');
   el.innerHTML = '<div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div>';
   try {
     var orders = await getAllOrders();
-    var ready = orders.filter(function(o) { return o.status === 'done' || o.status === 'shipped' || o.status === 'partial'; });
-    if (ready.length === 0) { el.innerHTML = '<div class="empty-state"><span class="es-icon">&#128666;</span>Inga ordrar klara f&ouml;r frakt</div>'; return; }
-    el.innerHTML = '';
-    ready.forEach(function(o) {
-      var row = document.createElement('div'); row.className = 'order-row';
-      var badge = o.status === 'shipped' ? 'badge-shipped' : 'badge-done';
-      var label = o.status === 'shipped' ? 'Skickad' : 'Klar f&ouml;r frakt';
-      row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span><span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.kollin||[]).length + ' kolli</span><span class="badge ' + badge + '">' + label + '</span>';
-      row.onclick = function() { openFraktOrder(o._spId); };
-      el.appendChild(row);
-    });
+    fraktOrders = orders.filter(function(o) { return o.status === 'done' || o.status === 'shipped' || o.status === 'partial'; });
+    renderFraktList();
   } catch(e) { el.innerHTML = '<div class="empty-state"><span class="es-icon">&#128666;</span>Inga ordrar klara f&ouml;r frakt</div>'; }
+}
+
+function renderFraktList() {
+  var el = document.getElementById('frakt-orders-list');
+  var searchEl = document.getElementById('frakt-search');
+  var sortEl = document.getElementById('frakt-sort');
+  var search = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  var sort = sortEl ? sortEl.value : 'date-desc';
+
+  var list = fraktOrders.filter(function(o) {
+    if (!search) return true;
+    return (o.orderNum || '').toLowerCase().includes(search) || (o.customer || '').toLowerCase().includes(search);
+  });
+
+  list.sort(function(a, b) {
+    if (sort === 'date-desc') return b.createdAt - a.createdAt;
+    if (sort === 'date-asc') return a.createdAt - b.createdAt;
+    if (sort === 'order-asc') return (a.orderNum||'').localeCompare(b.orderNum||'');
+    if (sort === 'order-desc') return (b.orderNum||'').localeCompare(a.orderNum||'');
+    if (sort === 'customer-asc') return (a.customer||'').localeCompare(b.customer||'');
+    if (sort === 'customer-desc') return (b.customer||'').localeCompare(a.customer||'');
+    return 0;
+  });
+
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty-state"><span class="es-icon">&#128666;</span>' + (search ? 'Inga ordrar matchar sökningen' : 'Inga ordrar klara för frakt') + '</div>';
+    return;
+  }
+  el.innerHTML = '';
+  list.forEach(function(o) {
+    var row = document.createElement('div'); row.className = 'order-row';
+    var badge = o.status === 'shipped' ? 'badge-shipped' : 'badge-done';
+    var label = o.status === 'shipped' ? 'Skickad' : 'Klar för frakt';
+    row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span><span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.kollin||[]).length + ' kolli</span><span class="badge ' + badge + '">' + label + '</span>';
+    row.onclick = function() { openFraktOrder(o._spId); };
+    el.appendChild(row);
+  });
 }
 
 function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; }
