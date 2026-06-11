@@ -642,7 +642,7 @@ function openAddArtModal() {
   addBtn.onclick = function() {
     var nr = document.getElementById('modal-artnr').value.trim(); var desc = document.getElementById('modal-desc').value.trim(); var qty = document.getElementById('modal-qty').value.trim();
     if (!nr && !desc) { alert('Fyll i artikelnummer eller beskrivning.'); return; }
-    currentOrder.articles.push({id:'a'+Date.now(), name:nr?(nr+(desc?' \u2013 '+desc:'')):desc, qty:qty||'1 ST', location:'', kolli:null});
+    currentOrder.articles.push({id:'a'+Date.now(), name:nr?(nr+(desc?' \u2013 '+desc:'')):desc, qty:qty||'1 ST', location:'', kolli:null, isModified:true});
     overlay.remove(); scheduleSave(); renderPackView();
   };
   acts.appendChild(cancelBtn); acts.appendChild(addBtn);
