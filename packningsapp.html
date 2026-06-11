@@ -172,7 +172,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
         </div>
         <div class="form-row">
           <input type="text" id="order-num-input" placeholder="Ordernummer, t.ex. SO-1042">
-          <input type="text" id="kundnr-input" placeholder="Kundnr">
           <input type="text" id="customer-input" placeholder="Kundnamn (valfritt)">
         </div>
         <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
@@ -381,7 +380,7 @@ async function loadPackareList() {
       var row = document.createElement('div'); row.className = 'order-row';
       var badge = o.status === 'done' ? 'badge-done' : 'badge-packing';
       var label = o.status === 'done' ? 'Klar' : 'Packas';
-      row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span>' + (o.kundnr ? '<span class="order-meta" style="min-width:60px">' + esc(o.kundnr) + '</span>' : '') + '<span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.articles||[]).length + ' art &middot; ' + (o.kollin||[]).length + ' kolli</span><span class="badge ' + badge + '">' + label + '</span>';
+      row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span><span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.articles||[]).length + ' art &middot; ' + (o.kollin||[]).length + ' kolli</span><span class="badge ' + badge + '">' + label + '</span>';
       row.onclick = function() { openPackOrder(o._spId); };
       el.appendChild(row);
     });
@@ -400,7 +399,7 @@ async function loadFraktList() {
       var row = document.createElement('div'); row.className = 'order-row';
       var badge = o.status === 'shipped' ? 'badge-shipped' : 'badge-done';
       var label = o.status === 'shipped' ? 'Skickad' : 'Klar f&ouml;r frakt';
-      row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span>' + (o.kundnr ? '<span class="order-meta" style="min-width:60px">' + esc(o.kundnr) + '</span>' : '') + '<span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.kollin||[]).length + ' kolli</span><span class="badge ' + badge + '">' + label + '</span>';
+      row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span><span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.kollin||[]).length + ' kolli</span><span class="badge ' + badge + '">' + label + '</span>';
       row.onclick = function() { openFraktOrder(o._spId); };
       el.appendChild(row);
     });
@@ -430,7 +429,7 @@ async function openFraktOrder(spId) {
   document.getElementById('frakt-list-view').style.display='none'; document.getElementById('frakt-detail-view').style.display='block';
   var ph = document.getElementById('print-header');
   ph.style.display = 'block';
-  ph.innerHTML = '<h2>F&ouml;ljesedel &ndash; ' + esc(o.orderNum) + '</h2><p>' + (o.kundnr ? 'Kundnr: ' + esc(o.kundnr) + '  &middot;  ' : '') + (o.customer ? 'Kund: ' + esc(o.customer) + '  &middot;  ' : '') + 'Antal kollin: ' + (o.kollin||[]).length + '  &middot;  Datum: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
+  ph.innerHTML = '<h2>F&ouml;ljesedel &ndash; ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Kund: ' + esc(o.customer) + '  &middot;  ' : '') + 'Antal kollin: ' + (o.kollin||[]).length + '  &middot;  Datum: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
   renderFraktView();
 }
 
@@ -702,7 +701,7 @@ async function reopenOrder() {
   document.getElementById('packare-list-view').style.display = 'none';
   document.getElementById('packare-new-view').style.display = 'none';
   document.getElementById('packare-pack-view').style.display = 'block';
-  document.getElementById('pack-order-label').textContent = o.orderNum + (o.kundnr ? ' (' + o.kundnr + ')' : '') + (o.customer ? ' – ' + o.customer : '');
+  document.getElementById('pack-order-label').textContent = o.orderNum + (o.customer ? ' – ' + o.customer : '');
   currentOrder = o;
   renderPackView();
 }
@@ -724,7 +723,7 @@ async function handleFile(file) {
   try {
     document.getElementById('loading-txt').textContent = 'L\u00e4ser Excel...';
     var articles = await parseExcel(file);
-    var order = {id:'ord'+Date.now(), orderNum:on, kundnr:document.getElementById('kundnr-input').value.trim(), customer:document.getElementById('customer-input').value.trim(), status:'packing', createdAt:Date.now(), articles:articles, kollin:[{id:'k0',label:'Kolli 1'}]};
+    var order = {id:'ord'+Date.now(), orderNum:on, customer:document.getElementById('customer-input').value.trim(), status:'packing', createdAt:Date.now(), articles:articles, kollin:[{id:'k0',label:'Kolli 1'}]};
     document.getElementById('loading-txt').textContent = 'Sparar...';
     try { await saveOrderToSP(order); } catch(e) { console.warn('SP save:', e.message); }
     currentOrder = order;
