@@ -71,6 +71,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .articles-empty{font-size:13px;color:var(--text3);text-align:center;padding:16px 0}
 .article-modified{border-color:#f5a623!important;background:#fff8e6!important}
 .article-modified:hover{background:#fff0cc!important}
+.article-backorder{border-color:#94a3b8!important;background:#f1f5f9!important;opacity:0.85}
+.article-backorder:hover{background:#e2e8f0!important}
 .kolli-wrap{margin-bottom:8px}
 .kolli-head{padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
 .kolli-count{font-size:11px;color:var(--text3);flex:1}
@@ -472,8 +474,8 @@ function renderFraktList() {
   });
 }
 
-function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; document.getElementById('packare-pick-view').style.display='none'; document.getElementById('drop-zone').style.display=''; document.getElementById('new-order-error').innerHTML=''; document.getElementById('order-num-input').value=''; document.getElementById('customer-input').value=''; }
-function showPackareList() { currentOrder=null; currentOrderId=null; document.getElementById('packare-list-view').style.display='block'; document.getElementById('packare-new-view').style.display='none'; document.getElementById('packare-pack-view').style.display='none'; document.getElementById('packare-pick-view').style.display='none'; loadPackareList(); }
+function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; }
+function showPackareList() { currentOrder=null; currentOrderId=null; document.getElementById('packare-list-view').style.display='block'; document.getElementById('packare-new-view').style.display='none'; document.getElementById('packare-pack-view').style.display='none'; loadPackareList(); }
 function showFraktList() { currentOrder=null; currentOrderId=null; document.getElementById('frakt-list-view').style.display='block'; document.getElementById('frakt-detail-view').style.display='none'; }
 
 async function openPackOrder(spId) {
@@ -509,9 +511,9 @@ function renderPackView() {
     var p = document.createElement('p'); p.className = 'articles-empty'; p.textContent = 'Alla artiklar \u00e4r packade'; al.appendChild(p);
   } else {
     unpacked.forEach(function(a) {
-      var d = document.createElement('div'); d.className = 'article-item' + (a.isModified ? ' article-modified' : ''); d.draggable = true; d.dataset.id = a.id;
+      var d = document.createElement('div'); d.className = 'article-item' + (a.isModified ? ' article-modified' : '') + (a.isBackorder ? ' article-backorder' : ''); d.draggable = true; d.dataset.id = a.id;
       var handle = document.createElement('span'); handle.className = 'drag-handle'; handle.textContent = '\u283f';
-      var name = document.createElement('span'); name.className = 'ai-name'; name.textContent = a.name;
+      var name = document.createElement('span'); name.className = 'ai-name'; name.textContent = a.name; if (a.isBackorder) { var boBadge = document.createElement('span'); boBadge.style.cssText = 'font-size:10px;background:#94a3b8;color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle'; boBadge.textContent = 'RESTORDER'; name.appendChild(boBadge); }
       var qty = document.createElement('span'); qty.className = 'ai-qty'; qty.textContent = a.qty;
       var actions = document.createElement('div'); actions.className = 'art-actions';
       var serialBtn = document.createElement('button'); serialBtn.className = 'art-btn'; serialBtn.title = 'Serie-/lotnummer'; serialBtn.textContent = '\ud83d\udd22';
@@ -547,9 +549,9 @@ function renderPackView() {
       var empty = document.createElement('p'); empty.className = 'kolli-empty'; empty.textContent = 'Dra artiklar hit'; body.appendChild(empty);
     } else {
       items.forEach(function(a) {
-        var ki = document.createElement('div'); ki.className = 'kolli-item' + (a.isModified ? ' article-modified' : ''); ki.draggable = true;
+        var ki = document.createElement('div'); ki.className = 'kolli-item' + (a.isModified ? ' article-modified' : '') + (a.isBackorder ? ' article-backorder' : ''); ki.draggable = true;
         var kh = document.createElement('span'); kh.className = 'drag-handle'; kh.style.fontSize = '11px'; kh.textContent = '\u283f';
-        var kn = document.createElement('span'); kn.className = 'ki-name'; kn.textContent = a.name;
+        var kn = document.createElement('span'); kn.className = 'ki-name'; kn.textContent = a.name; if (a.isBackorder) { var koBadge = document.createElement('span'); koBadge.style.cssText = 'font-size:10px;background:#94a3b8;color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle'; koBadge.textContent = 'RESTORDER'; kn.appendChild(koBadge); }
         var kq = document.createElement('span'); kq.className = 'ki-qty'; kq.textContent = a.qty;
         var kb = document.createElement('button'); kb.className = 'ki-back'; kb.title = 'Tillbaka'; kb.textContent = '\u21a9';
         (function(aid) { kb.onclick = function() { unpackItem(aid); }; })(a.id);
