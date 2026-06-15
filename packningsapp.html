@@ -658,6 +658,8 @@ function confirmEditQty(aid, origQty) {
   var currentBOQty = existingBO ? (parseInt(existingBO.qty) || 0) : 0;
   var totalOrdered = origQty + currentBOQty;
   var newRest = totalOrdered - newQty;
+  console.log('confirmEditQty: aid='+aid+' origQty='+origQty+' newQty='+newQty+' baseName='+baseName+' existingBO='+(existingBO?existingBO.id:'none')+' currentBOQty='+currentBOQty+' totalOrdered='+totalOrdered+' newRest='+newRest);
+  console.log('articles before:', JSON.stringify(currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})));
   a.qty = newQty + ' ' + unit;
   if (newRest > 0) {
     if (existingBO) { existingBO.qty = newRest + ' ' + unit; }
@@ -665,6 +667,7 @@ function confirmEditQty(aid, origQty) {
   } else {
     if (existingBO) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== existingBO.id; }); }
   }
+  console.log('articles after:', JSON.stringify(currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})));
   scheduleSave(); renderPackView();
 }
 
@@ -868,7 +871,7 @@ function startPackingFromPick() {
     if (picked > 0) newArticles.push(a);
     else { a.kolli = null; newArticles.push(a); } // keep as unpacked if 0
     if (rest > 0) {
-      newArticles.push({id:'bo_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
+      newArticles.push({id:'a'+Date.now()+'r', name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
     }
   });
   o.articles = newArticles;
