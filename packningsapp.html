@@ -661,7 +661,7 @@ function confirmEditQty(aid, origQty) {
   a.qty = newQty + ' ' + unit;
   if (newRest > 0) {
     if (existingBO) { existingBO.qty = newRest + ' ' + unit; }
-    else { currentOrder.articles.push({id:'a'+Date.now()+'x', name:baseName+' (restorder)', qty:newRest+' '+unit, location:a.location, kolli:null, isBackorder:true}); }
+    else { currentOrder.articles.push({id:'bo_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), name:baseName+' (restorder)', qty:newRest+' '+unit, location:a.location, kolli:null, isBackorder:true}); }
   } else {
     if (existingBO) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== existingBO.id; }); }
   }
@@ -868,7 +868,7 @@ function startPackingFromPick() {
     if (picked > 0) newArticles.push(a);
     else { a.kolli = null; newArticles.push(a); } // keep as unpacked if 0
     if (rest > 0) {
-      newArticles.push({id:'a'+Date.now()+'r', name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
+      newArticles.push({id:'bo_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
     }
   });
   o.articles = newArticles;
