@@ -472,8 +472,8 @@ function renderFraktList() {
   });
 }
 
-function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; }
-function showPackareList() { currentOrder=null; currentOrderId=null; document.getElementById('packare-list-view').style.display='block'; document.getElementById('packare-new-view').style.display='none'; document.getElementById('packare-pack-view').style.display='none'; loadPackareList(); }
+function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; document.getElementById('packare-pick-view').style.display='none'; document.getElementById('drop-zone').style.display=''; document.getElementById('new-order-error').innerHTML=''; document.getElementById('order-num-input').value=''; document.getElementById('customer-input').value=''; }
+function showPackareList() { currentOrder=null; currentOrderId=null; document.getElementById('packare-list-view').style.display='block'; document.getElementById('packare-new-view').style.display='none'; document.getElementById('packare-pack-view').style.display='none'; document.getElementById('packare-pick-view').style.display='none'; loadPackareList(); }
 function showFraktList() { currentOrder=null; currentOrderId=null; document.getElementById('frakt-list-view').style.display='block'; document.getElementById('frakt-detail-view').style.display='none'; }
 
 async function openPackOrder(spId) {
