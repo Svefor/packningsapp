@@ -623,7 +623,7 @@ function renderFraktView() {
 }
 
 function updateKolliMeta(kid, field, value) { var k = currentOrder.kollin.find(function(x) { return x.id === kid; }); if (k) { k[field] = value; scheduleSave(); } }
-function deleteArticle(aid) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; }); scheduleSave(); renderPackView(); }
+function deleteArticle(aid) { console.log('deleteArticle called with aid:', aid, 'articles before:', currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})); currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; }); console.log('articles after:', currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})); scheduleSave(); renderPackView(); }
 
 function openEditQty(aid) {
   var a = currentOrder.articles.find(function(x) { return x.id === aid; });
@@ -855,11 +855,11 @@ function startPackingFromPick() {
     if (picked > qtyNum) picked = qtyNum;
     var rest = qtyNum - picked;
     a.qty = picked + ' ' + unit;
-    a.kolli = null;
     delete a.picked;
     if (picked > 0) newArticles.push(a);
+    else { a.kolli = null; newArticles.push(a); } // keep as unpacked if 0
     if (rest > 0) {
-      newArticles.push({id:'a'+Date.now()+'r'+newArticles.length, name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
+      newArticles.push({id:'a'+Date.now()+'r', name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
     }
   });
   o.articles = newArticles;
