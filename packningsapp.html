@@ -653,9 +653,18 @@ function confirmEditQty(aid, origQty) {
   var a = currentOrder.articles.find(function(x) { return x.id === aid; }); if (!a) return;
   var newQty = parseInt(document.getElementById('edit-qty-value').value) || 1;
   var unit = a.qty.replace(/[0-9]/g, '').trim() || 'ST';
-  var rest = origQty - newQty;
+  var baseName = a.name.replace(' (restorder)', '');
+  var existingBO = currentOrder.articles.find(function(x) { return x.isBackorder && x.name === baseName + ' (restorder)'; });
+  var currentBOQty = existingBO ? (parseInt(existingBO.qty) || 0) : 0;
+  var totalOrdered = origQty + currentBOQty;
+  var newRest = totalOrdered - newQty;
   a.qty = newQty + ' ' + unit;
-  if (rest > 0) { currentOrder.articles.push({id:'a'+Date.now(), name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true}); }
+  if (newRest > 0) {
+    if (existingBO) { existingBO.qty = newRest + ' ' + unit; }
+    else { currentOrder.articles.push({id:'a'+Date.now()+'x', name:baseName+' (restorder)', qty:newRest+' '+unit, location:a.location, kolli:null, isBackorder:true}); }
+  } else {
+    if (existingBO) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== existingBO.id; }); }
+  }
   scheduleSave(); renderPackView();
 }
 
