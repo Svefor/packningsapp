@@ -635,8 +635,8 @@ function openEditQty(aid) {
   var h3 = document.createElement('h3'); h3.textContent = 'Redigera antal';
   var artName = document.createElement('div'); artName.style.cssText = 'font-size:13px;color:var(--text2);margin-bottom:1rem'; artName.textContent = a.name;
   var field = document.createElement('div'); field.className = 'modal-field';
-  var lbl = document.createElement('label'); lbl.textContent = 'Antal';
-  var inp = document.createElement('input'); inp.type = 'number'; inp.id = 'edit-qty-value'; inp.min = '1'; inp.value = String(qtyNum);
+  var lbl = document.createElement('label'); lbl.textContent = 'Antal att packa nu (max ' + qtyNum + ')';
+  var inp = document.createElement('input'); inp.type = 'number'; inp.id = 'edit-qty-value'; inp.min = '1'; inp.max = String(qtyNum); inp.value = String(qtyNum);
   inp.style.cssText = 'width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px';
   var restDiv = document.createElement('div'); restDiv.id = 'edit-qty-rest'; restDiv.style.cssText = 'font-size:12px;color:var(--text2);margin-top:6px';
   inp.oninput = function() { var r = qtyNum - (parseInt(this.value)||0); restDiv.textContent = r > 0 ? r + ' ST l\u00e4ggs till som restorder' : ''; };
@@ -655,13 +655,7 @@ function confirmEditQty(aid, origQty) {
   var unit = a.qty.replace(/[0-9]/g, '').trim() || 'ST';
   var rest = origQty - newQty;
   a.qty = newQty + ' ' + unit;
-  if (rest > 0) {
-    // Check if a backorder already exists for this article and update it
-    var baseName = a.name.replace(' (restorder)', '');
-    var existingBO = currentOrder.articles.find(function(x) { return x.isBackorder && x.name === baseName + ' (restorder)'; });
-    if (existingBO) { existingBO.qty = (parseInt(existingBO.qty) + rest) + ' ' + unit; }
-    else { currentOrder.articles.push({id:'a'+Date.now(), name:baseName+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true}); }
-  }
+  if (rest > 0) { currentOrder.articles.push({id:'a'+Date.now(), name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true}); }
   scheduleSave(); renderPackView();
 }
 
@@ -861,11 +855,11 @@ function startPackingFromPick() {
     if (picked > qtyNum) picked = qtyNum;
     var rest = qtyNum - picked;
     a.qty = picked + ' ' + unit;
+    a.kolli = null;
     delete a.picked;
     if (picked > 0) newArticles.push(a);
-    else { a.kolli = null; newArticles.push(a); } // keep as unpacked if 0
     if (rest > 0) {
-      newArticles.push({id:'a'+Date.now()+'r', name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
+      newArticles.push({id:'a'+Date.now()+'r'+newArticles.length, name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
     }
   });
   o.articles = newArticles;
