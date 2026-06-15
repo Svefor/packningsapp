@@ -116,6 +116,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .modal-field label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
 .modal-field input,.modal-field select{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
+.pick-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.pick-row:last-child{border-bottom:none}
+.pick-name{flex:1;font-weight:500;color:var(--text)}
+.pick-loc{font-size:11px;color:var(--text3);background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border)}
+.pick-ordered{color:var(--text2);font-size:12px;white-space:nowrap}
+.pick-input{width:70px;padding:5px 8px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;text-align:center;background:var(--surface);color:var(--text)}
+.pick-input.ok{border-color:#22c55e;background:#f0fdf4}
+.pick-input.short{border-color:#f59e0b;background:#fffbeb}
+.pick-status{font-size:11px;width:80px;text-align:right;color:var(--text3)}
 @media print{body{background:white}#app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right{display:none!important}.main{padding:0;max-width:100%}.frakt-kolli-card{page-break-inside:avoid;border:1px solid #ccc}.no-print{display:none!important}.print-header{margin-bottom:16px}.print-header h2{font-size:18px;font-weight:700}.print-header p{font-size:13px;color:#666;margin-top:4px}}
 </style>
 </head>
@@ -182,6 +191,22 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
         <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
         <div id="new-order-error"></div>
         <div id="new-order-loading" style="display:none"><div class="loading-row"><div class="spinner"></div><span id="loading-txt">L&auml;ser...</span></div></div>
+      </div>
+
+      <div id="packare-pick-view" style="display:none">
+        <div class="pack-toolbar">
+          <div class="pack-toolbar-left">
+            <button class="btn btn-sm" onclick="showPackareList()">&larr; Tillbaka</button>
+            <span class="pack-title" id="pick-order-label"></span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="startPackingFromPick()">Starta packning &rarr;</button>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);font-size:13px;color:var(--text2)">
+          &#128230; Fyll i hur m&aring;nga av varje artikel som plockats fr&aring;n lagret. Om f&auml;rre &auml;n best&auml;llt &ndash; ange det plockade antalet s&aring; skapas en restorder automatiskt.
+        </div>
+        <div class="card" id="pick-articles-list"></div>
       </div>
 
       <div id="packare-pack-view" style="display:none">
@@ -447,8 +472,8 @@ function renderFraktList() {
   });
 }
 
-function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; }
-function showPackareList() { currentOrder=null; currentOrderId=null; document.getElementById('packare-list-view').style.display='block'; document.getElementById('packare-new-view').style.display='none'; document.getElementById('packare-pack-view').style.display='none'; loadPackareList(); }
+function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; document.getElementById('packare-pick-view').style.display='none'; document.getElementById('drop-zone').style.display=''; document.getElementById('new-order-error').innerHTML=''; document.getElementById('order-num-input').value=''; document.getElementById('customer-input').value=''; }
+function showPackareList() { currentOrder=null; currentOrderId=null; document.getElementById('packare-list-view').style.display='block'; document.getElementById('packare-new-view').style.display='none'; document.getElementById('packare-pack-view').style.display='none'; document.getElementById('packare-pick-view').style.display='none'; loadPackareList(); }
 function showFraktList() { currentOrder=null; currentOrderId=null; document.getElementById('frakt-list-view').style.display='block'; document.getElementById('frakt-detail-view').style.display='none'; }
 
 async function openPackOrder(spId) {
@@ -770,10 +795,77 @@ async function handleFile(file) {
     currentOrder = order;
     document.getElementById('new-order-loading').style.display = 'none';
     document.getElementById('packare-new-view').style.display = 'none';
-    document.getElementById('pack-order-label').textContent = order.orderNum + (order.customer ? ' \u2013 ' + order.customer : '');
-    document.getElementById('packare-pack-view').style.display = 'block';
-    renderPackView();
+    showPickView();
   } catch(e) { document.getElementById('new-order-loading').style.display = 'none'; dz.style.display = 'block'; showNewOrderError('Fel: ' + e.message); }
+}
+
+function showPickView() {
+  var o = currentOrder;
+  document.getElementById('packare-list-view').style.display = 'none';
+  document.getElementById('packare-new-view').style.display = 'none';
+  document.getElementById('packare-pack-view').style.display = 'none';
+  document.getElementById('packare-pick-view').style.display = 'block';
+  document.getElementById('pick-order-label').textContent = o.orderNum + (o.customer ? ' – ' + o.customer : '');
+  renderPickView();
+}
+
+function renderPickView() {
+  var o = currentOrder;
+  var list = document.getElementById('pick-articles-list');
+  list.innerHTML = '';
+  o.articles.forEach(function(a) {
+    var qtyNum = parseInt(a.qty) || 0;
+    var picked = a.picked !== undefined ? a.picked : qtyNum;
+    var row = document.createElement('div'); row.className = 'pick-row';
+    var nameSpan = document.createElement('span'); nameSpan.className = 'pick-name'; nameSpan.textContent = a.name;
+    var orderedSpan = document.createElement('span'); orderedSpan.className = 'pick-ordered'; orderedSpan.textContent = 'Best\u00e4llt: ' + qtyNum;
+    var inp = document.createElement('input'); inp.type = 'number'; inp.className = 'pick-input'; inp.min = '0'; inp.max = String(qtyNum); inp.value = String(picked);
+    inp.title = 'Plockat antal';
+    var statusSpan = document.createElement('span'); statusSpan.className = 'pick-status';
+    function updateStatus() {
+      var v = parseInt(inp.value) || 0;
+      inp.classList.remove('ok','short');
+      if (v >= qtyNum) { inp.classList.add('ok'); statusSpan.textContent = '\u2713 OK'; statusSpan.style.color = '#22c55e'; }
+      else if (v < qtyNum) { inp.classList.add('short'); statusSpan.textContent = (qtyNum - v) + ' saknas'; statusSpan.style.color = '#f59e0b'; }
+      a.picked = v;
+    }
+    inp.oninput = updateStatus;
+    updateStatus();
+    if (a.location) { var locSpan = document.createElement('span'); locSpan.className = 'pick-loc'; locSpan.textContent = a.location; row.appendChild(nameSpan); row.appendChild(locSpan); }
+    else { row.appendChild(nameSpan); }
+    row.appendChild(orderedSpan);
+    row.appendChild(inp);
+    row.appendChild(statusSpan);
+    list.appendChild(row);
+  });
+}
+
+function startPackingFromPick() {
+  var o = currentOrder;
+  var unit;
+  // Apply picked quantities - create backorders for shortfalls
+  var newArticles = [];
+  o.articles.forEach(function(a) {
+    var qtyNum = parseInt(a.qty) || 0;
+    unit = a.qty.replace(/[0-9]/g, '').trim() || 'ST';
+    var picked = (a.picked !== undefined) ? parseInt(a.picked) : qtyNum;
+    if (picked < 0) picked = 0;
+    if (picked > qtyNum) picked = qtyNum;
+    var rest = qtyNum - picked;
+    a.qty = picked + ' ' + unit;
+    delete a.picked;
+    if (picked > 0) newArticles.push(a);
+    else { a.kolli = null; newArticles.push(a); } // keep as unpacked if 0
+    if (rest > 0) {
+      newArticles.push({id:'a'+Date.now()+'r', name:a.name+' (restorder)', qty:rest+' '+unit, location:a.location, kolli:null, isBackorder:true});
+    }
+  });
+  o.articles = newArticles;
+  scheduleSave();
+  document.getElementById('packare-pick-view').style.display = 'none';
+  document.getElementById('packare-pack-view').style.display = 'block';
+  document.getElementById('pack-order-label').textContent = o.orderNum + (o.customer ? ' – ' + o.customer : '');
+  renderPackView();
 }
 
 async function parseExcel(file) {
