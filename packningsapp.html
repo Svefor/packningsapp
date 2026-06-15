@@ -71,8 +71,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .articles-empty{font-size:13px;color:var(--text3);text-align:center;padding:16px 0}
 .article-modified{border-color:#f5a623!important;background:#fff8e6!important}
 .article-modified:hover{background:#fff0cc!important}
-.article-backorder{border-color:#94a3b8!important;background:#f1f5f9!important;opacity:0.85}
-.article-backorder:hover{background:#e2e8f0!important}
+.article-backorder{border-color:#f5a623!important;background:#fff8e6!important}
+.article-backorder:hover{background:#fff0cc!important}
 .kolli-wrap{margin-bottom:8px}
 .kolli-head{padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
 .kolli-count{font-size:11px;color:var(--text3);flex:1}
@@ -513,7 +513,7 @@ function renderPackView() {
     unpacked.forEach(function(a) {
       var d = document.createElement('div'); d.className = 'article-item' + (a.isModified ? ' article-modified' : '') + (a.isBackorder ? ' article-backorder' : ''); d.draggable = true; d.dataset.id = a.id;
       var handle = document.createElement('span'); handle.className = 'drag-handle'; handle.textContent = '\u283f';
-      var name = document.createElement('span'); name.className = 'ai-name'; name.textContent = a.name; if (a.isBackorder) { var boBadge = document.createElement('span'); boBadge.style.cssText = 'font-size:10px;background:#94a3b8;color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle'; boBadge.textContent = 'RESTORDER'; name.appendChild(boBadge); }
+      var name = document.createElement('span'); name.className = 'ai-name'; name.textContent = a.name; if (a.isBackorder) { var boBadge = document.createElement('span'); boBadge.style.cssText = 'font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle'; boBadge.textContent = 'RESTORDER'; name.appendChild(boBadge); }
       var qty = document.createElement('span'); qty.className = 'ai-qty'; qty.textContent = a.qty;
       var actions = document.createElement('div'); actions.className = 'art-actions';
       var serialBtn = document.createElement('button'); serialBtn.className = 'art-btn'; serialBtn.title = 'Serie-/lotnummer'; serialBtn.textContent = '\ud83d\udd22';
