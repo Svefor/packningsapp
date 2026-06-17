@@ -411,7 +411,7 @@ async function loadPackareList() {
   el.innerHTML = '<div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div>';
   try {
     var orders = await getAllOrders();
-    var active = orders.filter(function(o) { return o.status !== 'shipped'; });
+    var active = orders.filter(function(o) { return o.status === 'packing'; });
     if (active.length === 0) { el.innerHTML = '<div class="empty-state"><span class="es-icon">&#128203;</span>Inga aktiva ordrar</div>'; return; }
     el.innerHTML = '';
     active.forEach(function(o) {
@@ -551,7 +551,7 @@ function renderPackView() {
       items.forEach(function(a) {
         var ki = document.createElement('div'); ki.className = 'kolli-item' + (a.isModified ? ' article-modified' : '') + (a.isBackorder ? ' article-backorder' : ''); ki.draggable = true;
         var kh = document.createElement('span'); kh.className = 'drag-handle'; kh.style.fontSize = '11px'; kh.textContent = '\u283f';
-        var kn = document.createElement('span'); kn.className = 'ki-name'; kn.textContent = a.name; if (a.isBackorder) { var koBadge = document.createElement('span'); koBadge.style.cssText = 'font-size:10px;background:#94a3b8;color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle'; koBadge.textContent = 'RESTORDER'; kn.appendChild(koBadge); }
+        var kn = document.createElement('span'); kn.className = 'ki-name'; kn.textContent = a.name; if (a.isBackorder) { var koBadge = document.createElement('span'); koBadge.style.cssText = 'font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle'; koBadge.textContent = 'RESTORDER'; kn.appendChild(koBadge); }
         var kq = document.createElement('span'); kq.className = 'ki-qty'; kq.textContent = a.qty;
         var kb = document.createElement('button'); kb.className = 'ki-back'; kb.title = 'Tillbaka'; kb.textContent = '\u21a9';
         (function(aid) { kb.onclick = function() { unpackItem(aid); }; })(a.id);
@@ -623,7 +623,7 @@ function renderFraktView() {
 }
 
 function updateKolliMeta(kid, field, value) { var k = currentOrder.kollin.find(function(x) { return x.id === kid; }); if (k) { k[field] = value; scheduleSave(); } }
-function deleteArticle(aid) { console.log('deleteArticle called with aid:', aid, 'articles before:', currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})); currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; }); console.log('articles after:', currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})); scheduleSave(); renderPackView(); }
+function deleteArticle(aid) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; }); scheduleSave(); renderPackView(); }
 
 function openEditQty(aid) {
   var a = currentOrder.articles.find(function(x) { return x.id === aid; });
@@ -658,16 +658,13 @@ function confirmEditQty(aid, origQty) {
   var currentBOQty = existingBO ? (parseInt(existingBO.qty) || 0) : 0;
   var totalOrdered = origQty + currentBOQty;
   var newRest = totalOrdered - newQty;
-  console.log('confirmEditQty: aid='+aid+' origQty='+origQty+' newQty='+newQty+' baseName='+baseName+' existingBO='+(existingBO?existingBO.id:'none')+' currentBOQty='+currentBOQty+' totalOrdered='+totalOrdered+' newRest='+newRest);
-  console.log('articles before:', JSON.stringify(currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})));
-  a.qty = newQty + ' ' + unit;
+    a.qty = newQty + ' ' + unit;
   if (newRest > 0) {
     if (existingBO) { existingBO.qty = newRest + ' ' + unit; }
     else { currentOrder.articles.push({id:'bo_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), name:baseName+' (restorder)', qty:newRest+' '+unit, location:a.location, kolli:null, isBackorder:true}); }
   } else {
     if (existingBO) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== existingBO.id; }); }
   }
-  console.log('articles after:', JSON.stringify(currentOrder.articles.map(function(a){return {id:a.id,name:a.name,isBackorder:a.isBackorder};})));
   scheduleSave(); renderPackView();
 }
 
