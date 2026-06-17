@@ -36,6 +36,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .btn-sm{padding:4px 10px;font-size:12px}
 .btn-danger{color:var(--red-fg);border-color:var(--red-bg)}
 .btn-danger:hover{background:var(--red-bg)}
+.btn-success{background:#22c55e;color:white;border-color:#22c55e}
+.btn-success:hover{opacity:.88}
 .btn-ms{background:#0078d4;color:white;border-color:#0078d4;font-size:14px;padding:10px 20px;border-radius:var(--radius-sm);width:100%}
 .btn-ms:hover{background:#006cbd}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px}
@@ -268,8 +270,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
           </div>
           <div style="display:flex;gap:6px">
             <button class="btn btn-sm" onclick="reopenOrder()">&#8635; &Aring;ter&ouml;ppna</button>
+            <button class="btn btn-sm btn-success" onclick="markShipped()">&#10003; Markera skickad</button>
             <button class="btn btn-sm btn-primary" onclick="window.print()">&#128424; Print packing list</button>
-
             <button class="btn btn-sm btn-danger" onclick="deleteFraktOrder()">&#128465; Ta bort</button>
           </div>
         </div>
