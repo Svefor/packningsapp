@@ -472,7 +472,7 @@ function renderFraktList() {
     var row = document.createElement('div'); row.className = 'order-row';
     var badge = o.status === 'shipped' ? 'badge-shipped' : 'badge-done';
     var label = o.status === 'shipped' ? 'Skickad' : 'Klar för frakt';
-    row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span><span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.kollin||[]).length + ' kolli</span><span class="badge ' + badge + '">' + label + '</span>';
+    var doneDate = o.packedAt ? o.packedAt.split(' ')[0] : (o.createdAt ? new Date(o.createdAt).toLocaleDateString('sv-SE') : ''); row.innerHTML = '<span class="order-num">' + esc(o.orderNum) + '</span><span class="order-customer">' + esc(o.customer || '') + '</span><span class="order-meta">' + (o.kollin||[]).length + ' kolli' + (doneDate ? '  &middot;  ' + doneDate : '') + '</span><span class="badge ' + badge + '">' + label + '</span>';
     row.onclick = function() { openFraktOrder(o._spId); };
     el.appendChild(row);
   });
