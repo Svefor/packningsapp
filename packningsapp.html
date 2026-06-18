@@ -193,6 +193,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
           <p style="font-size:12px;margin-top:4px">Exportera fr&aring;n BC som Excel och dra in h&auml;r</p>
         </div>
         <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
+        <div style="text-align:center;margin-top:12px;color:var(--text2);font-size:13px">eller</div>
+        <div style="text-align:center;margin-top:8px"><button class="btn btn-sm" onclick="startEmptyOrder()">+ Starta tom order</button></div>
         <div id="new-order-error"></div>
         <div id="new-order-loading" style="display:none"><div class="loading-row"><div class="spinner"></div><span id="loading-txt">L&auml;ser...</span></div></div>
       </div>
@@ -474,6 +476,19 @@ function renderFraktList() {
     row.onclick = function() { openFraktOrder(o._spId); };
     el.appendChild(row);
   });
+}
+
+async function startEmptyOrder() {
+  var on = document.getElementById('order-num-input').value.trim();
+  if (!on) { showNewOrderError('Fyll i ordernummer först.'); return; }
+  var order = {id:'ord'+Date.now(), orderNum:on, customer:document.getElementById('customer-input').value.trim(), status:'packing', createdAt:Date.now(), articles:[], kollin:[{id:'k0',label:'Kolli 1'}]};
+  order = await saveOrderToSP(order);
+  currentOrder = order;
+  document.getElementById('packare-new-view').style.display = 'none';
+  document.getElementById('drop-zone').style.display = '';
+  document.getElementById('pack-order-label').textContent = order.orderNum + (order.customer ? ' – ' + order.customer : '');
+  document.getElementById('packare-pack-view').style.display = 'block';
+  renderPackView();
 }
 
 function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; }
