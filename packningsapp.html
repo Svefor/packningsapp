@@ -8,7 +8,7 @@
 <script src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
 <style>
 :root{
-  --bg:#D8D8D8;--surface:rgba(255,255,255,0.95);--surface2:rgba(232,231,226,0.9);--border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.16);
+  --bg:#3C3C3C;--surface:#E8E8E6;--surface2:#DCDCDA;--border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.16);
   --text:#1A1A18;--text2:#5C5B56;--text3:#9B9A95;
   --accent:#E87722;--accent-fg:#fff;--accent-dark:#C4611A;
   --topbar:#1A1A18;
@@ -19,7 +19,7 @@
   --radius:8px;--radius-sm:5px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:100vh;font-size:14px;background-color:#BEBEBE;background-image:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,0) 0deg,rgba(255,255,255,0.04) 0.5deg,rgba(255,255,255,0) 1deg),repeating-linear-gradient(92deg,transparent 0px,rgba(0,0,0,0.04) 1px,transparent 2px,transparent 4px),radial-gradient(ellipse 120% 120% at 25% 35%,rgba(255,255,255,0.6) 0%,rgba(255,255,255,0.1) 35%,transparent 60%),radial-gradient(ellipse 80% 80% at 78% 70%,rgba(255,255,255,0.4) 0%,rgba(255,255,255,0.05) 40%,transparent 65%),radial-gradient(ellipse 60% 60% at 55% 20%,rgba(255,255,255,0.25) 0%,transparent 50%),linear-gradient(160deg,#D8D8D8 0%,#A8A8A8 40%,#C4C4C4 60%,#B0B0B0 100%)}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:100vh;font-size:14px;background:#3C3C3C}
 #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:var(--topbar)}
 .auth-card{background:#fff;border-radius:var(--radius);border:none;padding:2.5rem;max-width:380px;width:100%;text-align:center;box-shadow:0 4px 32px rgba(0,0,0,.25)}
 .auth-logo{width:56px;height:56px;background:var(--accent);border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1.25rem}
@@ -51,7 +51,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .btn-success:hover{background:#256428;border-color:#256428}
 .btn-ms{background:#0078d4;color:white;border-color:#0078d4;font-size:14px;padding:10px 20px;border-radius:var(--radius-sm);width:100%;font-weight:600}
 .btn-ms:hover{background:#006cbd}
-.card{background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,.1);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.card{background:#E8E8E6;border:1px solid rgba(0,0,0,.1);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 .section-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .section-bar span{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
 .order-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
@@ -104,7 +104,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .add-kolli-btn:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
 .add-article-btn{width:100%;padding:7px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:4px}
 .add-article-btn:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
-.frakt-kolli-card{background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,.1);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.frakt-kolli-card{background:#E8E8E6;border:1px solid rgba(0,0,0,.1);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 @media print{.frakt-kolli-card{page-break-after:always}}
 .frakt-kolli-header{padding:10px 16px;background:var(--topbar);color:#fff;border-bottom:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600}
 .frakt-table{width:100%;border-collapse:collapse;font-size:13px}
