@@ -88,7 +88,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .article-backorder:hover{background:#FFE8CC!important}
 .kolli-wrap{margin-bottom:8px}
 .kolli-head{padding:8px 12px;background:var(--topbar);color:#fff;border:1px solid var(--topbar);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
-.kolli-count{font-size:11px;color:rgba(255,255,255,0.75);flex:1}
+.kolli-count{font-size:11px;color:rgba(255,255,255,0.6);flex:1}
 .kolli-body{padding:8px;border:1px solid var(--border);min-height:54px;transition:background .1s}
 .kolli-body.drag-target{background:#FFF4E8;border-color:var(--accent)}
 .kolli-meta{display:flex;gap:6px;padding:6px 10px;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);background:var(--surface2);flex-wrap:wrap;align-items:center}
@@ -108,7 +108,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 @media print{.frakt-kolli-card{page-break-after:always}}
 .frakt-kolli-header{padding:10px 16px;background:var(--topbar);color:#fff;border-bottom:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600}
 .frakt-table{width:100%;border-collapse:collapse;font-size:13px}
-.frakt-table td{padding:8px 16px;border-bottom:1px solid var(--border);color:var(--text)}
+.frakt-table td{padding:8px 16px;border-bottom:1px solid var(--border)}
 .frakt-table tr:last-child td{border-bottom:none}
 .form-row{display:flex;gap:8px;margin-bottom:12px}
 .form-row input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)}
@@ -641,11 +641,11 @@ function renderFraktView() {
     var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00b7  ');
     var card = document.createElement('div'); card.className = 'frakt-kolli-card';
     var hdr = document.createElement('div'); hdr.className = 'frakt-kolli-header';
-    hdr.innerHTML = '<span>&#128230; ' + esc(k.label) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
+    hdr.innerHTML = '<span>&#128230; ' + esc(k.label) + '</span><span style="font-size:12px;color:var(--text2)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
     var tbl = document.createElement('table'); tbl.className = 'frakt-table';
     items.forEach(function(a) {
       var tr = document.createElement('tr');
-      var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text3)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
+      var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text2)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
       var modStyle = a.isModified ? ' style="background:#fff8e6;font-weight:500"' : ' style="font-weight:500"';
       tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
       tbl.appendChild(tr);
