@@ -371,7 +371,7 @@ async function ensureList() {
     else {
       var created = await graphRequest('POST', '/sites/' + siteId + '/lists', {
         displayName: LIST_NAME,
-        columns: [{name:'OrderNum',text:{}},{name:'Customer',text:{}},{name:'Status',text:{}},{name:'OrderData',text:{allowMultipleLines:true,maxLength:100000}}],
+        columns: [{name:'OrderNum',text:{}},{name:'Customer',text:{}},{name:'Status',text:{}},{name:'PackedBy',text:{}},{name:'OrderData',text:{allowMultipleLines:true,maxLength:100000}}],
         list: {template:'genericList'}
       });
       listId = created.id;
@@ -389,7 +389,7 @@ async function getAllOrders() {
 
 async function saveOrderToSP(order) {
   if (!siteId || !listId) return order;
-  var fields = {Title: order.orderNum, OrderNum: order.orderNum, Customer: order.customer || '', Status: order.status, OrderData: JSON.stringify(order)};
+  var fields = {Title: order.orderNum, OrderNum: order.orderNum, Customer: order.customer || '', Status: order.status, PackedBy: order.packedBy || '', OrderData: JSON.stringify(order)};
   if (order._spId) { await graphRequest('PATCH', '/sites/' + siteId + '/lists/' + listId + '/items/' + order._spId + '/fields', fields); }
   else { var created = await graphRequest('POST', '/sites/' + siteId + '/lists/' + listId + '/items', {fields: fields}); order._spId = created.id; }
   return order;
@@ -745,7 +745,7 @@ async function saveCurrentOrder() {
   try { document.getElementById('save-status').textContent = 'Sparar...'; await saveOrderToSP(currentOrder); document.getElementById('save-status').textContent = 'Sparat \u2713'; setTimeout(function() { document.getElementById('save-status').textContent = ''; }, 2000); }
   catch(e) { document.getElementById('save-status').textContent = '\u26a0\ufe0f ' + e.message; }
 }
-async function markDone() { currentOrder.status = 'done'; currentOrder.packedBy = account ? (account.name || account.username) : ''; currentOrder.packedAt = new Date().toLocaleString('sv-SE'); await saveOrderToSP(currentOrder); showPackareList(); }
+async function markDone() { currentOrder.status = 'done'; await saveOrderToSP(currentOrder); showPackareList(); }
 async function markShipped() {
   currentOrder.kollin.forEach(function(k) { k.shipped = true; k.shippedAt = new Date().toLocaleDateString('sv-SE'); });
   currentOrder.status = 'shipped';
