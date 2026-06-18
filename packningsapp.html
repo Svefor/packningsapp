@@ -745,7 +745,7 @@ async function saveCurrentOrder() {
   try { document.getElementById('save-status').textContent = 'Sparar...'; await saveOrderToSP(currentOrder); document.getElementById('save-status').textContent = 'Sparat \u2713'; setTimeout(function() { document.getElementById('save-status').textContent = ''; }, 2000); }
   catch(e) { document.getElementById('save-status').textContent = '\u26a0\ufe0f ' + e.message; }
 }
-async function markDone() { currentOrder.status = 'done'; await saveOrderToSP(currentOrder); showPackareList(); }
+async function markDone() { currentOrder.status = 'done'; currentOrder.packedBy = account ? (account.name || account.username) : ''; currentOrder.packedAt = new Date().toLocaleString('sv-SE'); await saveOrderToSP(currentOrder); showPackareList(); }
 async function markShipped() {
   currentOrder.kollin.forEach(function(k) { k.shipped = true; k.shippedAt = new Date().toLocaleDateString('sv-SE'); });
   currentOrder.status = 'shipped';
