@@ -81,7 +81,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .art-actions{display:flex;align-items:center;gap:2px;flex-shrink:0}
 .art-btn{border:none;background:none;cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1}
 .art-btn:hover{background:var(--surface2)}
-.articles-empty{font-size:13px;color:var(--text3);text-align:center;padding:16px 0}
+.articles-empty{font-size:13px;color:#A8A8A6;text-align:center;padding:16px 0}
 .article-modified{border-color:var(--accent)!important;background:#FFF4E8!important}
 .article-modified:hover{background:#FFE8CC!important}
 .article-backorder{border-color:var(--accent)!important;background:#FFF4E8!important}
@@ -92,17 +92,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .kolli-body{padding:8px;border:1px solid var(--border);min-height:54px;transition:background .1s}
 .kolli-body.drag-target{background:#FFF4E8;border-color:var(--accent)}
 .kolli-meta{display:flex;gap:6px;padding:6px 10px;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);background:var(--surface2);flex-wrap:wrap;align-items:center}
-.kolli-meta label{font-size:11px;color:var(--text2);white-space:nowrap}
+.kolli-meta label{font-size:11px;color:#3C3C3C;font-weight:600;white-space:nowrap}
 .kolli-meta input{padding:3px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text);min-width:0}
-.kolli-empty{font-size:12px;color:var(--text3);text-align:center;padding:12px 0}
+.kolli-empty{font-size:12px;color:#A8A8A6;text-align:center;padding:12px 0}
 .kolli-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:4px;font-size:12px;background:var(--surface);cursor:grab}
 .ki-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ki-qty{color:var(--text2)}
 .ki-back{color:var(--text3);cursor:pointer;font-size:13px;border:none;background:none;line-height:1;padding:0 2px}
 .ki-back:hover{color:var(--text)}
-.add-kolli-btn{width:100%;padding:8px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:6px}
+.add-kolli-btn{width:100%;padding:8px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed rgba(255,255,255,.25);background:none;color:#A8A8A6;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:6px}
 .add-kolli-btn:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
-.add-article-btn{width:100%;padding:7px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:4px}
+.add-article-btn{width:100%;padding:7px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed rgba(255,255,255,.25);background:none;color:#A8A8A6;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:4px}
 .add-article-btn:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
 .frakt-kolli-card{background:#D0D0CE;border:1px solid rgba(0,0,0,.1);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 @media print{.frakt-kolli-card{page-break-after:always}}
@@ -214,7 +214,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
           <p style="font-size:12px;margin-top:4px">Exportera fr&aring;n BC som Excel och dra in h&auml;r</p>
         </div>
         <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
-        <div style="text-align:center;margin-top:12px;color:var(--text2);font-size:13px">eller</div>
+        <div style="text-align:center;margin-top:12px;color:#D0D0CE;font-size:13px">eller</div>
         <div style="text-align:center;margin-top:8px"><button class="btn btn-sm" onclick="startEmptyOrder()">+ Starta tom order</button></div>
         <div id="new-order-error"></div>
         <div id="new-order-loading" style="display:none"><div class="loading-row"><div class="spinner"></div><span id="loading-txt">L&auml;ser...</span></div></div>
