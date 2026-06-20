@@ -214,7 +214,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
           <p style="font-size:12px;margin-top:4px">Exportera fr&aring;n BC som Excel och dra in h&auml;r</p>
         </div>
         <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
-        <div style="text-align:center;margin-top:12px;color:#D0D0CE;font-size:13px">eller</div>
+        <div style="text-align:center;margin-top:12px;color:var(--text2);font-size:13px">eller</div>
         <div style="text-align:center;margin-top:8px"><button class="btn btn-sm" onclick="startEmptyOrder()">+ Starta tom order</button></div>
         <div id="new-order-error"></div>
         <div id="new-order-loading" style="display:none"><div class="loading-row"><div class="spinner"></div><span id="loading-txt">L&auml;ser...</span></div></div>
@@ -294,7 +294,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
           <div style="display:flex;gap:6px">
             <button class="btn btn-sm" onclick="reopenOrder()">&#8635; &Aring;ter&ouml;ppna</button>
             <button class="btn btn-sm btn-success" onclick="markShipped()">&#10003; Markera skickad</button>
-            <button class="btn btn-sm btn-primary" onclick="window.print()">&#128424; Print packing list</button>
+            <button class="btn btn-sm btn-primary" onclick="printPackingList()">&#128424; Print packing list</button>
             <button class="btn btn-sm btn-danger" onclick="deleteFraktOrder()">&#128465; Ta bort</button>
           </div>
         </div>
@@ -630,6 +630,11 @@ function renderPackView() {
   });
 }
 
+var printMode = false;
+function fraktLabel(label) {
+  if (!printMode) return label;
+  return label.replace(/^Kolli/, 'Package');
+}
 function renderFraktView() {
   var o = currentOrder;
   var container = document.getElementById('frakt-kolli-view');
@@ -641,7 +646,7 @@ function renderFraktView() {
     var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00b7  ');
     var card = document.createElement('div'); card.className = 'frakt-kolli-card';
     var hdr = document.createElement('div'); hdr.className = 'frakt-kolli-header';
-    hdr.innerHTML = '<span>&#128230; ' + esc(k.label) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
+    hdr.innerHTML = '<span>&#128230; ' + esc(fraktLabel(k.label)) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
     var tbl = document.createElement('table'); tbl.className = 'frakt-table';
     items.forEach(function(a) {
       var tr = document.createElement('tr');
@@ -659,6 +664,17 @@ function renderFraktView() {
     container.appendChild(warn);
   }
 }
+
+function printPackingList() {
+  printMode = true;
+  renderFraktView();
+  window.print();
+  printMode = false;
+  renderFraktView();
+}
+window.addEventListener('afterprint', function() {
+  if (printMode) { printMode = false; renderFraktView(); }
+});
 
 function updateKolliMeta(kid, field, value) { var k = currentOrder.kollin.find(function(x) { return x.id === kid; }); if (k) { k[field] = value; scheduleSave(); } }
 function deleteArticle(aid) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; }); scheduleSave(); renderPackView(); }
