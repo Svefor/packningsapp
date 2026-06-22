@@ -145,10 +145,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
   body{background:white}
   #app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right,#print-header{display:none!important}
   .main{padding:0;max-width:100%}
-  .frakt-kolli-card{page-break-after:always;border:1px solid #ccc;margin-bottom:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .frakt-kolli-card{page-break-after:always;background:white!important;box-shadow:none!important;border:none!important;border-radius:0!important}
   .frakt-kolli-card:last-child{page-break-after:avoid}
-  .frakt-kolli-header{background:#1A1A18!important;color:#fff!important}
+  .frakt-kolli-header{background:#1A1A18!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .no-print{display:none!important}
+  .logo-screen{display:none!important}
+  .logo-print{display:block!important}
+  .frakt-table td{color:#1A1A18!important;border-bottom:1px solid #ddd!important;background:white!important}
+  .frakt-table tr td:first-child{font-weight:500}
+  .new-addition-badge{display:none!important}
   .card-print-header{display:block!important;padding:14px 0 10px 0;border-bottom:2px solid #E87722;margin-bottom:12px}
   .card-print-header h2{font-size:18px;font-weight:700;color:#1A1A18;margin-top:8px;margin-bottom:0}
   .card-print-header p{font-size:12px;color:#5C5B56;margin-top:4px}
@@ -659,8 +664,8 @@ function renderFraktView() {
     items.forEach(function(a) {
       var tr = document.createElement('tr');
       var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text2)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
-      var modStyle = a.isModified ? ' style="background:#fff8e6;font-weight:500"' : ' style="font-weight:500"';
-      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
+      var modStyle = a.isModified ? ' style="font-weight:500"' : ' style="font-weight:500"';
+      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span class="new-addition-badge" style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
       tbl.appendChild(tr);
     });
     card.appendChild(hdr); card.appendChild(tbl); container.appendChild(card);
