@@ -143,20 +143,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .pick-status{font-size:11px;width:80px;text-align:right;color:var(--text3)}
 @media print{
   body{background:white}
-  #app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right,#print-header{display:none!important}
+  #app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right{display:none!important}
   .main{padding:0;max-width:100%}
-  .frakt-kolli-card{page-break-after:always;background:white!important;box-shadow:none!important;border:none!important;border-radius:0!important}
-  .frakt-kolli-card:last-child{page-break-after:avoid}
+  .frakt-kolli-card{page-break-inside:avoid;border:1px solid #ccc;margin-bottom:0}
   .frakt-kolli-header{background:#1A1A18!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .no-print{display:none!important}
-  .logo-screen{display:none!important}
-  .logo-print{display:block!important}
-  .frakt-table td{color:#1A1A18!important;border-bottom:1px solid #ddd!important;background:white!important}
-  .frakt-table tr td:first-child{font-weight:500}
-  .new-addition-badge{display:none!important}
-  .card-print-header{display:block!important;padding:14px 0 10px 0;border-bottom:2px solid #E87722;margin-bottom:12px}
-  .card-print-header h2{font-size:18px;font-weight:700;color:#1A1A18;margin-top:8px;margin-bottom:0}
-  .card-print-header p{font-size:12px;color:#5C5B56;margin-top:4px}
+  .no-print{display:none!important}.logo-screen{display:none!important}.logo-print{display:block!important}
+  .print-header{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #E87722}.logo-screen{display:block}.logo-print{display:none}
+  .print-header h2{font-size:20px;font-weight:700;color:#1A1A18;margin-top:10px}
+  .print-header p{font-size:13px;color:#5C5B56;margin-top:4px}
 }
 </style>
 </head>
@@ -318,23 +312,22 @@ var CLIENT_ID = '7d73fb47-d382-4a89-891a-58c13b01a47a';
 var TENANT_ID = 'scanacon.onmicrosoft.com';
 
 var KARTONGER = [
-  {nr:'1401-0001',desc:'Syrakartong LQ9, 25x25x26 cm'},
-  {nr:'1401-0002',desc:'Syrakartong LQ12, 38x26x29.5 cm'},
-  {nr:'1401-0003',desc:'Kartong 20x18.5x12 cm'},
-  {nr:'1401-0004',desc:'Kartong 32x22.5x25 cm'},
-  {nr:'1401-0005',desc:'Kartong 120x80x80 cm'},
-  {nr:'1401-0006',desc:'Kartong 80x60x70 cm'},
-  {nr:'1401-0007',desc:'Kartong 57x39x20/30/39 cm'},
-  {nr:'1401-0008',desc:'Kartong DG6 40x30x40 cm'},
-  {nr:'1401-0009',desc:'Kartong 15.3x5.5x5.5 cm'},
-  {nr:'1401-0010',desc:'Kartong 18x13.2x8.5 cm'},
-  {nr:'1401-0011',desc:'Papper Pad-pak junior'},
-  {nr:'1401-0012',desc:'Kartong 20x15x10 cm'},
-  {nr:'1401-0013',desc:'Kartong 25x15x20/15 cm'},
-  {nr:'1401-0014',desc:'Kartong 39x29x30/25 cm'},
-  {nr:'1403-0001',desc:'Halvpall 80x60x14 cm'},
-  {nr:'1403-0002',desc:'Helpall 120x80x10 cm'},
-  {nr:'1403-0003',desc:'Pall filterkartong 165x54x12 cm'}
+  {nr:'1401-0001',desc:'Cardboard box LQ9, 25 x 25 x 26 cm (0,016 m3)'},
+  {nr:'1401-0002',desc:'Cardboard box LQ12, 38 x 26 x 29,5 cm (0,029 m3)'},
+  {nr:'1401-0003',desc:'Cardboard box 20 x 18,5 x 12 cm (0,004 m3)'},
+  {nr:'1401-0004',desc:'Cardboard box 32 x 22,5 x 25 cm (0,018 m3)'},
+  {nr:'1401-0005',desc:'Cardboard box 120 x 80 x 80 cm'},
+  {nr:'1401-0006',desc:'Cardboard box 80 x 60 x 70 cm'},
+  {nr:'1401-0007',desc:'Cardboard box 57 x 39 x 20/30/39 cm'},
+  {nr:'1401-0008',desc:'Cardboard box DG 6 40 x 30 x 40 cm (0,048 m3)'},
+  {nr:'1401-0009',desc:'Cardboard box 15,3x 5,5 x 5,5 cm'},
+  {nr:'1401-0010',desc:'Cardboard box 18 x 13,2 x 8,5 cm (0,02 m3)'},
+  {nr:'1401-0012',desc:'Cardboard box 20 x 15 x 10 cm (0,003 m3)'},
+  {nr:'1401-0013',desc:'Cardboard box 25 x 15 x 20/15 cm'},
+  {nr:'1401-0014',desc:'Cardboard box 39 x 29 x 30/25 cm'},
+  {nr:'1403-0001',desc:'Pallett, 80x60x14cm, ISPM 15 compliable IPPC mrk'},
+  {nr:'1403-0002',desc:'Pallett,120x80x10cm, ISPM 15 compliable IPPC mrk'},
+  {nr:'1403-0003',desc:'Pallet, 165x54x12cm, ISPM 15 compliable IPPC mrk'}
 ];
 
 var msalConfig = {
@@ -641,8 +634,6 @@ function fraktLabel(label) {
   if (!printMode) return label;
   return label.replace(/^Kolli/, 'Package');
 }
-var LOGO_PRINT_SRC = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIKCSB2aWV3Qm94PSIwIDAgODQxLjkgMTM1LjUiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDg0MS45IDEzNS41OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxnPgoJPHBhdGggZD0iTTIwMSw5NWwxMi4xLTE3LjNjNS44LDUuNSwxNC40LDkuOSwyNC44LDkuOWM0LjQsMCw4LjUtMS4yLDguNS00LjJjMC03LjQtNDIuOSwwLjEtNDIuOS0zMC4yYzAtMTMsMTAuOC0yNS41LDMxLjktMjUuNWMxMi42LDAsMjMuOSwzLjYsMzIuNiwxMC43TDI1NS42LDU1Yy02LjctNS4xLTE1LjMtNy42LTIyLjYtNy42Yy00LjYsMC01LjksMS41LTUuOSwzLjRjMCw3LjMsNDIuOCwxLjEsNDIuOCwyOS42YzAsMTYuOS0xMi42LDI2LjctMzMuMiwyNi43QzIyMC40LDEwNy4yLDIwOS4yLDEwMi40LDIwMSw5NSIvPgoJPHBhdGggZD0iTTI3NC45LDY3LjVjMC0yMy43LDE4LjItMzkuOCw0Mi4zLTM5LjhjMjAuMiwwLDMwLjMsMTEuOCwzNC45LDIyLjRsLTIwLDkuM2MtMi02LTgtMTEuMi0xNC45LTExLjJjLTExLjIsMC0xOC43LDguNS0xOC43LDE5LjJjMCwxMC43LDcuNSwxOS4yLDE4LjcsMTkuMmM2LjksMCwxMi45LTUuMiwxNC45LTExLjJsMjAsOS4yYy00LjUsMTAuMy0xNC43LDIyLjUtMzQuOSwyMi41QzI5My4yLDEwNy4zLDI3NC45LDkxLjEsMjc0LjksNjcuNSIvPgoJPHBhdGggZD0iTTU5OS45LDY3LjVjMC0yMy43LDE4LjItMzkuOCw0Mi4zLTM5LjhjMjAuMiwwLDMwLjMsMTEuOCwzNC45LDIyLjRsLTIwLjEsOS4zYy0yLTYtNy45LTExLjItMTQuOS0xMS4yYy0xMS4yLDAtMTguNyw4LjUtMTguNywxOS4yYzAsMTAuNyw3LjUsMTkuMiwxOC43LDE5LjJjNi45LDAsMTIuOS01LjIsMTQuOS0xMS4ybDIwLjEsOS4yYy00LjUsMTAuMy0xNC43LDIyLjUtMzQuOSwyMi41QzYxOC4xLDEwNy4zLDU5OS45LDkxLjEsNTk5LjksNjcuNSIvPgoJPHBhdGggZD0iTTQwOS41LDEwNmwtMi44LTloLTI3LjdsLTIuOCw5aC0yNi40bDI4LjMtNzYuOWgyOS4zbDI4LjQsNzYuOUg0MDkuNXogTTM5Mi45LDUxLjlsLTcuNiwyNC44aDE1LjJMMzkyLjksNTEuOXoiLz4KCTxwb2x5Z29uIHBvaW50cz0iNDkxLjUsMTA2IDQ2My4xLDY3IDQ2My4xLDEwNiA0MzkuOCwxMDYgNDM5LjgsMjkuMSA0NjMuOCwyOS4xIDQ5MC41LDY1LjUgNDkwLjUsMjkuMSA1MTMuOCwyOS4xIDUxMy44LDEwNiAJIi8+Cgk8cGF0aCBkPSJNNTc3LjMsMTA2bC0yLjgtOWgtMjcuN2wtMi44LDloLTI2LjRsMjguNC03Ni45aDI5LjNsMjguMyw3Ni45SDU3Ny4zeiBNNTYwLjcsNTEuOWwtNy42LDI0LjhoMTUuMkw1NjAuNyw1MS45eiIvPgoJPHBvbHlnb24gcG9pbnRzPSI4MTUuMywxMDYuMSA3ODcuMyw2Ni45IDc4Ni45LDEwNS44IDc2My42LDEwNS42IDc2NC4zLDI4LjcgNzg4LjMsMjkgODE0LjcsNjUuNiA4MTUsMjkuMiA4MzguMywyOS40IDgzNy42LDEwNi4zICIvPgoJPHBhdGggZD0iTTcxOC45LDI3LjljLTIxLjgsMC0zOS42LDE3LjgtMzkuNiwzOS43YzAsMjEuOSwxNy44LDM5LjYsMzkuNiwzOS42YzIxLjksMCwzOS43LTE3LjgsMzkuNy0zOS42Qzc1OC42LDQ1LjcsNzQwLjgsMjcuOSw3MTguOSwyNy45IE03MTguOSw4Ny44Yy0xMS4yLDAtMjAuMi05LjEtMjAuMi0yMC4zYzAtMTEuMiw5LjEtMjAuMywyMC4yLTIwLjNjMTEuMiwwLDIwLjMsOS4xLDIwLjMsMjAuM0M3MzkuMiw3OC43LDczMC4xLDg3LjgsNzE4LjksODcuOCIvPgoJPHBvbHlnb24gcG9pbnRzPSI1My4zLDgwLjQgNTMuMyw4MC40IDEuMyw1NC45IDEuMywxMDUuOSAxLjMsMTA2IDUzLjMsMTMxLjUgMTA1LjQsMTA2IDEwNS40LDU0LjkgCSIvPgoJPHBhdGggZD0iTTUxLjYsODMuMlYyOC4zTDEwNS40LDJsNTMuOCwyNi4zdjU0LjhsLTUzLjgtMjYuNEw1MS42LDgzLjJ6IE0xMDUuMyw1M2wwLjgsMC40bDQ5LjYsMjQuM1YzMC41TDEwNS40LDUuOEw1NSwzMC41djQ3LjNMMTA1LjMsNTN6Ii8+CjwvZz4KPC9zdmc+";
-
 function renderFraktView() {
   var o = currentOrder;
   var container = document.getElementById('frakt-kolli-view');
@@ -653,19 +644,14 @@ function renderFraktView() {
     var dims = [k.dimL, k.dimW, k.dimH].filter(Boolean).join('\u00d7');
     var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00b7  ');
     var card = document.createElement('div'); card.className = 'frakt-kolli-card';
-    if (printMode) {
-      var ph2 = document.createElement('div'); ph2.className = 'card-print-header';
-      ph2.innerHTML = '<img src="' + LOGO_PRINT_SRC + '" style="height:30px" alt="Scanacon"><h2>Packing List \u2013 ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Customer: ' + esc(o.customer) + '  \u00b7  ' : '') + 'Date: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
-      card.appendChild(ph2);
-    }
     var hdr = document.createElement('div'); hdr.className = 'frakt-kolli-header';
     hdr.innerHTML = '<span>&#128230; ' + esc(fraktLabel(k.label)) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
     var tbl = document.createElement('table'); tbl.className = 'frakt-table';
     items.forEach(function(a) {
       var tr = document.createElement('tr');
       var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text2)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
-      var modStyle = a.isModified ? ' style="font-weight:500"' : ' style="font-weight:500"';
-      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span class="new-addition-badge" style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
+      var modStyle = a.isModified ? ' style="background:#fff8e6;font-weight:500"' : ' style="font-weight:500"';
+      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
       tbl.appendChild(tr);
     });
     card.appendChild(hdr); card.appendChild(tbl); container.appendChild(card);
