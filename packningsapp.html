@@ -109,7 +109,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .frakt-table{width:100%;border-collapse:collapse;font-size:13px}
 .frakt-table td{padding:8px 16px;border-bottom:1px solid var(--border);color:var(--text)}
 .frakt-table tr:last-child td{border-bottom:none}
-.print-header{background:white;padding:16px 20px 12px;border-bottom:2px solid #E87722;margin-bottom:14px}
+.print-header{padding:12px 0 8px;margin-bottom:14px}
 .print-header h2{font-size:18px;font-weight:700;color:#1A1A18;margin:8px 0 0}
 .print-header p{font-size:12px;color:#5C5B56;margin-top:4px}
 .logo-screen{display:block}.logo-print{display:none}
@@ -122,7 +122,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 @media print{
   body{background:white}
-  #app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right{display:none!important}
+  #app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right,#print-header{display:none!important}
   .main{padding:0;max-width:100%}
   .frakt-kolli-card{page-break-after:always;background:white!important;box-shadow:none!important;border:none!important;border-radius:0!important}
   .frakt-kolli-card:last-child{page-break-after:avoid}
@@ -518,7 +518,7 @@ async function openFraktOrder(spId) {
   document.getElementById('frakt-list-view').style.display='none'; document.getElementById('frakt-detail-view').style.display='block';
   var ph = document.getElementById('print-header');
   ph.style.display = 'block';
-  ph.innerHTML = '<div style="display:flex;align-items:center;margin-bottom:8px"><img class="logo-screen" src="' + LOGO_PRINT_SRC + '" style="height:32px" alt="Scanacon"><img class="logo-print" src="' + LOGO_PRINT_SRC + '" style="height:32px;display:none" alt="Scanacon"></div><h2>Packing List &ndash; ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Customer: ' + esc(o.customer) + '  &middot;  ' : '') + 'Date: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
+  ph.innerHTML = '<img class="logo-screen" src="' + LOGO_PRINT_SRC + '" style="height:32px;filter:invert(1)" alt="Scanacon">';align-items:center;margin-bottom:8px"><img class="logo-screen" src="' + LOGO_PRINT_SRC + '" style="height:32px" alt="Scanacon"><img class="logo-print" src="' + LOGO_PRINT_SRC + '" style="height:32px;display:none" alt="Scanacon"></div><h2>Packing List &ndash; ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Customer: ' + esc(o.customer) + '  &middot;  ' : '') + 'Date: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
   renderFraktView();
 }
 
