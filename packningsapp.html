@@ -105,52 +105,21 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .add-article-btn{width:100%;padding:7px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed rgba(255,255,255,.25);background:none;color:#A8A8A6;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:4px}
 .add-article-btn:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
 .frakt-kolli-card{background:#D0D0CE;border:1px solid rgba(0,0,0,.1);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-@media print{.frakt-kolli-card{page-break-after:always}}
-.frakt-kolli-header{padding:10px 16px;background:var(--topbar);color:#fff;border-bottom:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600}
-.frakt-table{width:100%;border-collapse:collapse;font-size:13px}
-.frakt-table td{padding:8px 16px;border-bottom:1px solid var(--border);color:var(--text)}
-.frakt-table tr:last-child td{border-bottom:none}
-.form-row{display:flex;gap:8px;margin-bottom:12px}
-.form-row input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)}
-.form-row input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(232,119,34,.15)}
-.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;background:var(--surface);transition:all .15s}
-.drop-zone:hover,.drop-zone.drag-over{background:#FFF4E8;border-color:var(--accent)}
-.dz-icon{font-size:28px;margin-bottom:8px;display:block}
-.loading-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);padding:12px 0}
-.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.error-msg{font-size:13px;color:var(--red-fg);padding:8px 12px;background:var(--red-bg);border-radius:var(--radius-sm);margin-top:8px}
-.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--text2);font-size:14px}
-.es-icon{font-size:2rem;display:block;margin-bottom:8px}
-.warn-card{background:#FFFBF0;border:1px solid #F5D76A;border-left:3px solid var(--accent);border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;font-size:13px;color:var(--amber-fg)}
-.save-status{font-size:12px;color:#D0D0CE;margin-bottom:6px;min-height:18px}
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center}
-.modal{background:#fff;border-radius:var(--radius);padding:1.5rem;width:420px;max-width:90vw;box-shadow:0 12px 40px rgba(0,0,0,.35)}
-.modal h3{font-size:15px;font-weight:700;margin-bottom:1rem;color:var(--topbar)}
-.modal-field{margin-bottom:10px}
-.modal-field label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
-.modal-field input,.modal-field select{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)}
-.modal-field input:focus,.modal-field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(232,119,34,.15)}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
-.pick-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px}
-.pick-row:last-child{border-bottom:none}
-.pick-name{flex:1;font-weight:500;color:var(--text)}
-.pick-loc{font-size:11px;color:var(--text3);background:var(--surface2);padding:2px 6px;border-radius:3px;border:1px solid var(--border)}
-.pick-ordered{color:var(--text2);font-size:12px;white-space:nowrap}
-.pick-input{width:70px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;text-align:center;background:var(--surface);color:var(--text)}
-.pick-input.ok{border-color:#2E7D32;background:#E8F5E9}
-.pick-input.short{border-color:var(--accent);background:#FFF4E8}
-.pick-status{font-size:11px;width:80px;text-align:right;color:var(--text3)}
 @media print{
   body{background:white}
-  #app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right{display:none!important}
+  #app>.topbar,.pack-toolbar,.btn,.role-tabs,.topbar-right,#print-header{display:none!important}
   .main{padding:0;max-width:100%}
-  .frakt-kolli-card{page-break-inside:avoid;border:1px solid #ccc;margin-bottom:0}
+  .frakt-kolli-card{page-break-after:always;background:white!important;box-shadow:none!important;border:none!important;border-radius:0!important}
+  .frakt-kolli-card:last-child{page-break-after:avoid}
   .frakt-kolli-header{background:#1A1A18!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .no-print{display:none!important}.logo-screen{display:none!important}.logo-print{display:block!important}
-  .print-header{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #E87722}.logo-screen{display:block}.logo-print{display:none}
-  .print-header h2{font-size:20px;font-weight:700;color:#1A1A18;margin-top:10px}
-  .print-header p{font-size:13px;color:#5C5B56;margin-top:4px}
+  .no-print{display:none!important}
+  .logo-screen{display:none!important}
+  .logo-print{display:block!important}
+  .frakt-table td{color:#1A1A18!important;border-bottom:1px solid #ddd!important;background:white!important}
+  .new-addition-badge{display:none!important}
+  .card-print-header{display:block!important;padding:14px 0 10px 0;border-bottom:2px solid #E87722;margin-bottom:12px}
+  .card-print-header h2{font-size:18px;font-weight:700;color:#1A1A18;margin-top:8px;margin-bottom:0}
+  .card-print-header p{font-size:12px;color:#5C5B56;margin-top:4px}
 }
 </style>
 </head>
@@ -634,6 +603,8 @@ function fraktLabel(label) {
   if (!printMode) return label;
   return label.replace(/^Kolli/, 'Package');
 }
+var LOGO_PRINT_SRC = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIKCSB2aWV3Qm94PSIwIDAgODQxLjkgMTM1LjUiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDg0MS45IDEzNS41OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxnPgoJPHBhdGggZD0iTTIwMSw5NWwxMi4xLTE3LjNjNS44LDUuNSwxNC40LDkuOSwyNC44LDkuOWM0LjQsMCw4LjUtMS4yLDguNS00LjJjMC03LjQtNDIuOSwwLjEtNDIuOS0zMC4yYzAtMTMsMTAuOC0yNS41LDMxLjktMjUuNWMxMi42LDAsMjMuOSwzLjYsMzIuNiwxMC43TDI1NS42LDU1Yy02LjctNS4xLTE1LjMtNy42LTIyLjYtNy42Yy00LjYsMC01LjksMS41LTUuOSwzLjRjMCw3LjMsNDIuOCwxLjEsNDIuOCwyOS42YzAsMTYuOS0xMi42LDI2LjctMzMuMiwyNi43QzIyMC40LDEwNy4yLDIwOS4yLDEwMi40LDIwMSw5NSIvPgoJPHBhdGggZD0iTTI3NC45LDY3LjVjMC0yMy43LDE4LjItMzkuOCw0Mi4zLTM5LjhjMjAuMiwwLDMwLjMsMTEuOCwzNC45LDIyLjRsLTIwLDkuM2MtMi02LTgtMTEuMi0xNC45LTExLjJjLTExLjIsMC0xOC43LDguNS0xOC43LDE5LjJjMCwxMC43LDcuNSwxOS4yLDE4LjcsMTkuMmM2LjksMCwxMi45LTUuMiwxNC45LTExLjJsMjAsOS4yYy00LjUsMTAuMy0xNC43LDIyLjUtMzQuOSwyMi41QzI5My4yLDEwNy4zLDI3NC45LDkxLjEsMjc0LjksNjcuNSIvPgoJPHBhdGggZD0iTTU5OS45LDY3LjVjMC0yMy43LDE4LjItMzkuOCw0Mi4zLTM5LjhjMjAuMiwwLDMwLjMsMTEuOCwzNC45LDIyLjRsLTIwLjEsOS4zYy0yLTYtNy45LTExLjItMTQuOS0xMS4yYy0xMS4yLDAtMTguNyw4LjUtMTguNywxOS4yYzAsMTAuNyw3LjUsMTkuMiwxOC43LDE5LjJjNi45LDAsMTIuOS01LjIsMTQuOS0xMS4ybDIwLjEsOS4yYy00LjUsMTAuMy0xNC43LDIyLjUtMzQuOSwyMi41QzYxOC4xLDEwNy4zLDU5OS45LDkxLjEsNTk5LjksNjcuNSIvPgoJPHBhdGggZD0iTTQwOS41LDEwNmwtMi44LTloLTI3LjdsLTIuOCw5aC0yNi40bDI4LjMtNzYuOWgyOS4zbDI4LjQsNzYuOUg0MDkuNXogTTM5Mi45LDUxLjlsLTcuNiwyNC44aDE1LjJMMzkyLjksNTEuOXoiLz4KCTxwb2x5Z29uIHBvaW50cz0iNDkxLjUsMTA2IDQ2My4xLDY3IDQ2My4xLDEwNiA0MzkuOCwxMDYgNDM5LjgsMjkuMSA0NjMuOCwyOS4xIDQ5MC41LDY1LjUgNDkwLjUsMjkuMSA1MTMuOCwyOS4xIDUxMy44LDEwNiAJIi8+Cgk8cGF0aCBkPSJNNTc3LjMsMTA2bC0yLjgtOWgtMjcuN2wtMi44LDloLTI2LjRsMjguNC03Ni45aDI5LjNsMjguMyw3Ni45SDU3Ny4zeiBNNTYwLjcsNTEuOWwtNy42LDI0LjhoMTUuMkw1NjAuNyw1MS45eiIvPgoJPHBvbHlnb24gcG9pbnRzPSI4MTUuMywxMDYuMSA3ODcuMyw2Ni45IDc4Ni45LDEwNS44IDc2My42LDEwNS42IDc2NC4zLDI4LjcgNzg4LjMsMjkgODE0LjcsNjUuNiA4MTUsMjkuMiA4MzguMywyOS40IDgzNy42LDEwNi4zICIvPgoJPHBhdGggZD0iTTcxOC45LDI3LjljLTIxLjgsMC0zOS42LDE3LjgtMzkuNiwzOS43YzAsMjEuOSwxNy44LDM5LjYsMzkuNiwzOS42YzIxLjksMCwzOS43LTE3LjgsMzkuNy0zOS42Qzc1OC42LDQ1LjcsNzQwLjgsMjcuOSw3MTguOSwyNy45IE03MTguOSw4Ny44Yy0xMS4yLDAtMjAuMi05LjEtMjAuMi0yMC4zYzAtMTEuMiw5LjEtMjAuMywyMC4yLTIwLjNjMTEuMiwwLDIwLjMsOS4xLDIwLjMsMjAuM0M3MzkuMiw3OC43LDczMC4xLDg3LjgsNzE4LjksODcuOCIvPgoJPHBvbHlnb24gcG9pbnRzPSI1My4zLDgwLjQgNTMuMyw4MC40IDEuMyw1NC45IDEuMywxMDUuOSAxLjMsMTA2IDUzLjMsMTMxLjUgMTA1LjQsMTA2IDEwNS40LDU0LjkgCSIvPgoJPHBhdGggZD0iTTUxLjYsODMuMlYyOC4zTDEwNS40LDJsNTMuOCwyNi4zdjU0LjhsLTUzLjgtMjYuNEw1MS42LDgzLjJ6IE0xMDUuMyw1M2wwLjgsMC40bDQ5LjYsMjQuM1YzMC41TDEwNS40LDUuOEw1NSwzMC41djQ3LjNMMTA1LjMsNTN6Ii8+CjwvZz4KPC9zdmc+";
+
 function renderFraktView() {
   var o = currentOrder;
   var container = document.getElementById('frakt-kolli-view');
@@ -644,14 +615,19 @@ function renderFraktView() {
     var dims = [k.dimL, k.dimW, k.dimH].filter(Boolean).join('\u00d7');
     var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00b7  ');
     var card = document.createElement('div'); card.className = 'frakt-kolli-card';
+    if (printMode) {
+      var ph2 = document.createElement('div'); ph2.className = 'card-print-header';
+      ph2.innerHTML = '<img src="' + LOGO_PRINT_SRC + '" style="height:30px" alt="Scanacon"><h2>Packing List \u2013 ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Customer: ' + esc(o.customer) + '  \u00b7  ' : '') + 'Date: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
+      card.appendChild(ph2);
+    }
     var hdr = document.createElement('div'); hdr.className = 'frakt-kolli-header';
     hdr.innerHTML = '<span>&#128230; ' + esc(fraktLabel(k.label)) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
     var tbl = document.createElement('table'); tbl.className = 'frakt-table';
     items.forEach(function(a) {
       var tr = document.createElement('tr');
       var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text2)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
-      var modStyle = a.isModified ? ' style="background:#fff8e6;font-weight:500"' : ' style="font-weight:500"';
-      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
+      var modStyle = a.isModified ? ' style="font-weight:500"' : ' style="font-weight:500"';
+      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span class="new-addition-badge" style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
       tbl.appendChild(tr);
     });
     card.appendChild(hdr); card.appendChild(tbl); container.appendChild(card);
