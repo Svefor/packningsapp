@@ -75,6 +75,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .col-label{font-size:11px;font-weight:700;color:#D0D0CE;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .article-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:5px;background:var(--surface);cursor:grab;user-select:none;transition:box-shadow .1s,background .1s}
 .article-item:hover{background:var(--surface2);border-color:var(--border2)}
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2);color:var(--text2);margin-top:12px}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:#FFF4E8;color:var(--accent)}
+.drop-zone .dz-icon{font-size:32px;display:block;margin-bottom:8px}
+.drop-zone p{margin:0;font-size:14px}
+.form-row{display:flex;gap:8px;margin-bottom:12px}
+.form-row input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)}
 .article-item.dragging{opacity:.35}
 .drag-handle{color:var(--text3);font-size:12px;cursor:grab;flex-shrink:0}
 .ai-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
