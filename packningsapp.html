@@ -494,14 +494,16 @@ function renderFraktList() {
 async function startEmptyOrder() {
   var on = document.getElementById('order-num-input').value.trim();
   if (!on) { showNewOrderError('Fyll i ordernummer först.'); return; }
-  var order = {id:'ord'+Date.now(), orderNum:on, customer:document.getElementById('customer-input').value.trim(), status:'packing', createdAt:Date.now(), articles:[], kollin:[{id:'k0',label:'Kolli 1'}]};
-  order = await saveOrderToSP(order);
-  currentOrder = order;
-  document.getElementById('packare-new-view').style.display = 'none';
-  document.getElementById('drop-zone').style.display = '';
-  document.getElementById('pack-order-label').textContent = order.orderNum + (order.customer ? ' – ' + order.customer : '');
-  document.getElementById('packare-pack-view').style.display = 'block';
-  renderPackView();
+  try {
+    var order = {id:'ord'+Date.now(), orderNum:on, customer:document.getElementById('customer-input').value.trim(), status:'packing', createdAt:Date.now(), articles:[], kollin:[{id:'k0',label:'Kolli 1'}]};
+    order = await saveOrderToSP(order);
+    currentOrder = order;
+    document.getElementById('packare-new-view').style.display = 'none';
+    document.getElementById('drop-zone').style.display = '';
+    document.getElementById('pack-order-label').textContent = order.orderNum + (order.customer ? ' – ' + order.customer : '');
+    document.getElementById('packare-pack-view').style.display = 'block';
+    renderPackView();
+  } catch(e) { showNewOrderError('Fel: ' + e.message); }
 }
 
 function showNewOrder() { document.getElementById('packare-list-view').style.display='none'; document.getElementById('packare-new-view').style.display='block'; document.getElementById('packare-pack-view').style.display='none'; }
