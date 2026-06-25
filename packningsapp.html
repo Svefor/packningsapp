@@ -67,18 +67,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .badge-partial{background:#F3E8FF;color:#6B21A8}
 .pack-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .pack-toolbar-left{display:flex;align-items:center;gap:8px}
+.btn-edit-order{background:none;border:none;color:#A8A8A6;font-size:14px;cursor:pointer;padding:2px 5px;border-radius:4px;line-height:1;transition:color .12s}
+.btn-edit-order:hover{color:#E87722}
 .pack-title{font-size:15px;font-weight:700;color:#D0D0CE}
 .columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;height:calc(100vh - 180px)}
 @media(max-width:600px){.columns{grid-template-columns:1fr}}
 .col-label{font-size:11px;font-weight:700;color:#D0D0CE;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .article-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:5px;background:var(--surface);cursor:grab;user-select:none;transition:box-shadow .1s,background .1s}
 .article-item:hover{background:var(--surface2);border-color:var(--border2)}
-.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2);color:var(--text2);margin-top:12px}
-.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:#FFF4E8;color:var(--accent)}
-.drop-zone .dz-icon{font-size:32px;display:block;margin-bottom:8px}
-.drop-zone p{margin:0;font-size:14px}
-.form-row{display:flex;gap:8px;margin-bottom:12px}
-.form-row input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)}
+.article-item.dragging{opacity:.35}
 .drag-handle{color:var(--text3);font-size:12px;cursor:grab;flex-shrink:0}
 .ai-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ai-qty{font-size:12px;color:var(--text2);white-space:nowrap}
@@ -230,6 +227,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
           <div class="pack-toolbar-left">
             <button class="btn btn-sm" onclick="showPackareList()">&larr; Tillbaka</button>
             <span class="pack-title" id="pack-order-label"></span>
+            <button class="btn-edit-order" onclick="editOrderMeta()" title="Ändra ordernummer / kundnamn">&#9998;</button>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-sm btn-danger" onclick="deleteCurrentOrder()">&#128465; Ta bort</button>
@@ -670,6 +668,29 @@ function printPackingList() {
 window.addEventListener('afterprint', function() {
   if (printMode) { printMode = false; renderFraktView(); }
 });
+
+function editOrderMeta() {
+  var o = currentOrder;
+  var overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+  overlay.innerHTML = '<div class="modal"><h3>Ändra ordernummer / kundnamn</h3>' +
+    '<div class="modal-field"><label>Ordernummer</label><input id="edit-meta-num" value="' + esc(o.orderNum) + '"></div>' +
+    '<div class="modal-field"><label>Kundnamn</label><input id="edit-meta-cust" value="' + esc(o.customer||'') + '"></div>' +
+    '<div class="modal-actions"><button class="btn btn-sm" onclick="this.closest(\'.modal-overlay\').remove()">Avbryt</button>' +
+    '<button class="btn btn-sm btn-primary" onclick="saveOrderMeta(this)">Spara</button></div></div>';
+  document.body.appendChild(overlay);
+  document.getElementById('edit-meta-num').focus();
+}
+
+function saveOrderMeta(btn) {
+  var num = document.getElementById('edit-meta-num').value.trim();
+  var cust = document.getElementById('edit-meta-cust').value.trim();
+  if (!num) { alert('Ordernummer får inte vara tomt.'); return; }
+  currentOrder.orderNum = num;
+  currentOrder.customer = cust;
+  document.getElementById('pack-order-label').textContent = num + (cust ? ' \u2013 ' + cust : '');
+  scheduleSave();
+  btn.closest('.modal-overlay').remove();
+}
 
 function updateKolliMeta(kid, field, value) { var k = currentOrder.kollin.find(function(x) { return x.id === kid; }); if (k) { k[field] = value; scheduleSave(); } }
 function deleteArticle(aid) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; }); scheduleSave(); renderPackView(); }
