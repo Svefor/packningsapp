@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="sv">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0051)file:///C:/Users/svefor/Downloads/packningsapp.html -->
+<html lang="sv"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Packningsapp</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
+<script src="./Packningsapp_files/xlsx.full.min.js.nedladdning"></script>
+<script src="./Packningsapp_files/msal-browser.min.js.nedladdning"></script>
 <style>
 :root{
   --bg:#3C3C3C;--surface:#D0D0CE;--surface2:#C4C4C2;--border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.16);
@@ -81,6 +81,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .drop-zone p{margin:0;font-size:14px}
 .form-row{display:flex;gap:8px;margin-bottom:12px}
 .form-row input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:#A8A8A6;font-size:14px}
+.es-icon{font-size:2rem;display:block;margin-bottom:8px}
 .article-item.dragging{opacity:.35}
 .drag-handle{color:var(--text3);font-size:12px;cursor:grab;flex-shrink:0}
 .ai-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -150,11 +152,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 
 <div id="auth-screen">
   <div class="auth-card">
-    <div class="auth-logo"><svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9 9H7v-2h4v2zm6-4H7v-2h10v2z"/></svg></div>
+    <div class="auth-logo"><svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9 9H7v-2h4v2zm6-4H7v-2h10v2z"></path></svg></div>
     <h1>Packningsapp</h1>
     <p>Logga in med ditt Scanacon-konto.</p>
     <button class="btn btn-ms" onclick="signIn()">
-      <svg viewBox="0 0 21 21" fill="none" width="18" height="18"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+      <svg viewBox="0 0 21 21" fill="none" width="18" height="18"><rect x="1" y="1" width="9" height="9" fill="#f25022"></rect><rect x="11" y="1" width="9" height="9" fill="#7fba00"></rect><rect x="1" y="11" width="9" height="9" fill="#00a4ef"></rect><rect x="11" y="11" width="9" height="9" fill="#ffb900"></rect></svg>
       Logga in med Microsoft
     </button>
     <div id="auth-error"></div>
@@ -167,8 +169,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
       <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIKCSB2aWV3Qm94PSIwIDAgODQxLjkgMTM1LjUiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDg0MS45IDEzNS41OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxnIGZpbGw9IndoaXRlIj4KCTxwYXRoIGQ9Ik0yMDEsOTVsMTIuMS0xNy4zYzUuOCw1LjUsMTQuNCw5LjksMjQuOCw5LjljNC40LDAsOC41LTEuMiw4LjUtNC4yYzAtNy40LTQyLjksMC4xLTQyLjktMzAuMmMwLTEzLDEwLjgtMjUuNSwzMS45LTI1LjVjMTIuNiwwLDIzLjksMy42LDMyLjYsMTAuN0wyNTUuNiw1NWMtNi43LTUuMS0xNS4zLTcuNi0yMi42LTcuNmMtNC42LDAtNS45LDEuNS01LjksMy40YzAsNy4zLDQyLjgsMS4xLDQyLjgsMjkuNmMwLDE2LjktMTIuNiwyNi43LTMzLjIsMjYuN0MyMjAuNCwxMDcuMiwyMDkuMiwxMDIuNCwyMDEsOTUiLz4KCTxwYXRoIGQ9Ik0yNzQuOSw2Ny41YzAtMjMuNywxOC4yLTM5LjgsNDIuMy0zOS44YzIwLjIsMCwzMC4zLDExLjgsMzQuOSwyMi40bC0yMCw5LjNjLTItNi04LTExLjItMTQuOS0xMS4yYy0xMS4yLDAtMTguNyw4LjUtMTguNywxOS4yYzAsMTAuNyw3LjUsMTkuMiwxOC43LDE5LjJjNi45LDAsMTIuOS01LjIsMTQuOS0xMS4ybDIwLDkuMmMtNC41LDEwLjMtMTQuNywyMi41LTM0LjksMjIuNUMyOTMuMiwxMDcuMywyNzQuOSw5MS4xLDI3NC45LDY3LjUiLz4KCTxwYXRoIGQ9Ik01OTkuOSw2Ny41YzAtMjMuNywxOC4yLTM5LjgsNDIuMy0zOS44YzIwLjIsMCwzMC4zLDExLjgsMzQuOSwyMi40bC0yMC4xLDkuM2MtMi02LTcuOS0xMS4yLTE0LjktMTEuMmMtMTEuMiwwLTE4LjcsOC41LTE4LjcsMTkuMmMwLDEwLjcsNy41LDE5LjIsMTguNywxOS4yYzYuOSwwLDEyLjktNS4yLDE0LjktMTEuMmwyMC4xLDkuMmMtNC41LDEwLjMtMTQuNywyMi41LTM0LjksMjIuNUM2MTguMSwxMDcuMyw1OTkuOSw5MS4xLDU5OS45LDY3LjUiLz4KCTxwYXRoIGQ9Ik00MDkuNSwxMDZsLTIuOC05aC0yNy43bC0yLjgsOWgtMjYuNGwyOC4zLTc2LjloMjkuM2wyOC40LDc2LjlINDA5LjV6IE0zOTIuOSw1MS45bC03LjYsMjQuOGgxNS4yTDM5Mi45LDUxLjl6Ii8+Cgk8cG9seWdvbiBwb2ludHM9IjQ5MS41LDEwNiA0NjMuMSw2NyA0NjMuMSwxMDYgNDM5LjgsMTA2IDQzOS44LDI5LjEgNDYzLjgsMjkuMSA0OTAuNSw2NS41IDQ5MC41LDI5LjEgNTEzLjgsMjkuMSA1MTMuOCwxMDYgCSIvPgoJPHBhdGggZD0iTTU3Ny4zLDEwNmwtMi44LTloLTI3LjdsLTIuOCw5aC0yNi40bDI4LjQtNzYuOWgyOS4zbDI4LjMsNzYuOUg1NzcuM3ogTTU2MC43LDUxLjlsLTcuNiwyNC44aDE1LjJMNTYwLjcsNTEuOXoiLz4KCTxwb2x5Z29uIHBvaW50cz0iODE1LjMsMTA2LjEgNzg3LjMsNjYuOSA3ODYuOSwxMDUuOCA3NjMuNiwxMDUuNiA3NjQuMywyOC43IDc4OC4zLDI5IDgxNC43LDY1LjYgODE1LDI5LjIgODM4LjMsMjkuNCA4MzcuNiwxMDYuMyAiLz4KCTxwYXRoIGQ9Ik03MTguOSwyNy45Yy0yMS44LDAtMzkuNiwxNy44LTM5LjYsMzkuN2MwLDIxLjksMTcuOCwzOS42LDM5LjYsMzkuNmMyMS45LDAsMzkuNy0xNy44LDM5LjctMzkuNkM3NTguNiw0NS43LDc0MC44LDI3LjksNzE4LjksMjcuOSBNNzE4LjksODcuOGMtMTEuMiwwLTIwLjItOS4xLTIwLjItMjAuM2MwLTExLjIsOS4xLTIwLjMsMjAuMi0yMC4zYzExLjIsMCwyMC4zLDkuMSwyMC4zLDIwLjNDNzM5LjIsNzguNyw3MzAuMSw4Ny44LDcxOC45LDg3LjgiLz4KCTxwb2x5Z29uIHBvaW50cz0iNTMuMyw4MC40IDUzLjMsODAuNCAxLjMsNTQuOSAxLjMsMTA1LjkgMS4zLDEwNiA1My4zLDEzMS41IDEwNS40LDEwNiAxMDUuNCw1NC45IAkiLz4KCTxwYXRoIGQ9Ik01MS42LDgzLjJWMjguM0wxMDUuNCwybDUzLjgsMjYuM3Y1NC44bC01My44LTI2LjRMNTEuNiw4My4yeiBNMTA1LjMsNTNsMC44LDAuNGw0OS42LDI0LjNWMzAuNUwxMDUuNCw1LjhMNTUsMzAuNXY0Ny4zTDEwNS4zLDUzeiIvPgo8L2c+Cjwvc3ZnPg==" style="height:28px;display:block" alt="Scanacon">
     </div>
     <div class="role-tabs">
-      <button class="role-tab active" id="tab-packare" onclick="setRole('packare')">&#128230; Packare</button>
-      <button class="role-tab" id="tab-frakt" onclick="setRole('frakt')">&#128666; Frakt</button>
+      <button class="role-tab active" id="tab-packare" onclick="setRole(&#39;packare&#39;)">📦 Packare</button>
+      <button class="role-tab" id="tab-frakt" onclick="setRole(&#39;frakt&#39;)">🚚 Frakt</button>
     </div>
     <div class="topbar-right">
       <span id="user-name"></span>
@@ -182,7 +184,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
         <div class="section-bar" style="border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:14px">
           <span>Aktiva ordrar</span>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm" onclick="loadPackareList()">&#8635; Uppdatera</button>
+            <button class="btn btn-sm" onclick="loadPackareList()">↻ Uppdatera</button>
             <button class="btn btn-sm btn-primary" onclick="showNewOrder()">+ Ny order</button>
           </div>
         </div>
@@ -192,7 +194,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
       <div id="packare-new-view" style="display:none">
         <div class="pack-toolbar">
           <div class="pack-toolbar-left">
-            <button class="btn btn-sm" onclick="showPackareList()">&larr; Tillbaka</button>
+            <button class="btn btn-sm" onclick="showPackareList()">← Tillbaka</button>
             <span class="pack-title">Ny plocklista</span>
           </div>
         </div>
@@ -200,30 +202,30 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
           <input type="text" id="order-num-input" placeholder="Ordernummer, t.ex. SO-1042">
           <input type="text" id="customer-input" placeholder="Kundnamn (valfritt)">
         </div>
-        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-          <span class="dz-icon">&#128202;</span>
-          <p><strong>Dra in plocklista (Excel)</strong> eller klicka f&ouml;r att v&auml;lja</p>
-          <p style="font-size:12px;margin-top:4px">Exportera fr&aring;n BC som Excel och dra in h&auml;r</p>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById(&#39;file-input&#39;).click()">
+          <span class="dz-icon">📊</span>
+          <p><strong>Dra in plocklista (Excel)</strong> eller klicka för att välja</p>
+          <p style="font-size:12px;margin-top:4px">Exportera från BC som Excel och dra in här</p>
         </div>
         <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
         <div style="text-align:center;margin-top:12px;color:#D0D0CE;font-size:13px">eller</div>
         <div style="text-align:center;margin-top:8px"><button class="btn btn-sm" onclick="startEmptyOrder()">+ Starta tom order</button></div>
         <div id="new-order-error"></div>
-        <div id="new-order-loading" style="display:none"><div class="loading-row"><div class="spinner"></div><span id="loading-txt">L&auml;ser...</span></div></div>
+        <div id="new-order-loading" style="display:none"><div class="loading-row"><div class="spinner"></div><span id="loading-txt">Läser...</span></div></div>
       </div>
 
       <div id="packare-pick-view" style="display:none">
         <div class="pack-toolbar">
           <div class="pack-toolbar-left">
-            <button class="btn btn-sm" onclick="showPackareList()">&larr; Tillbaka</button>
+            <button class="btn btn-sm" onclick="showPackareList()">← Tillbaka</button>
             <span class="pack-title" id="pick-order-label"></span>
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-primary" onclick="startPackingFromPick()">Starta packning &rarr;</button>
+            <button class="btn btn-sm btn-primary" onclick="startPackingFromPick()">Starta packning →</button>
           </div>
         </div>
         <div style="margin-bottom:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);font-size:13px;color:var(--text2)">
-          &#128230; Fyll i hur m&aring;nga av varje artikel som plockats fr&aring;n lagret. Om f&auml;rre &auml;n best&auml;llt &ndash; ange det plockade antalet s&aring; skapas en restorder automatiskt.
+          📦 Fyll i hur många av varje artikel som plockats från lagret. Om färre än beställt – ange det plockade antalet så skapas en restorder automatiskt.
         </div>
         <div class="card" id="pick-articles-list"></div>
       </div>
@@ -231,14 +233,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
       <div id="packare-pack-view" style="display:none">
         <div class="pack-toolbar">
           <div class="pack-toolbar-left">
-            <button class="btn btn-sm" onclick="showPackareList()">&larr; Tillbaka</button>
+            <button class="btn btn-sm" onclick="showPackareList()">← Tillbaka</button>
             <span class="pack-title" id="pack-order-label"></span>
-            <button class="btn-edit-order" onclick="editOrderMeta()" title="Ändra ordernummer / kundnamn">&#9998;</button>
+            <button class="btn-edit-order" onclick="editOrderMeta()" title="Ändra ordernummer / kundnamn">✎</button>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn btn-sm btn-danger" onclick="deleteCurrentOrder()">&#128465; Ta bort</button>
-            <button class="btn btn-sm" onclick="saveCurrentOrder()">&#128190; Spara</button>
-            <button class="btn btn-sm btn-primary" onclick="markDone()">&#10003; Markera klar</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteCurrentOrder()">🗑 Ta bort</button>
+            <button class="btn btn-sm" onclick="saveCurrentOrder()">💾 Spara</button>
+            <button class="btn btn-sm btn-primary" onclick="markDone()">✓ Markera klar</button>
           </div>
         </div>
         <div class="save-status" id="save-status"></div>
@@ -250,9 +252,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
           <div>
             <div class="col-label">Kollin</div>
             <div id="pack-kollin" style="height:calc(100vh - 300px);overflow-y:auto;padding-right:4px"></div>
-            <button class="add-kolli-btn" onclick="addKolliCurrent()">+ L&auml;gg till kolli</button>
-            <button class="add-article-btn" id="add-art-btn">+ L&auml;gg till artikel / kartong</button>
-            <button class="add-article-btn" id="add-excel-btn" style="margin-top:4px">+ L&auml;gg till fr&aring;n Excel</button>
+            <button class="add-kolli-btn" onclick="addKolliCurrent()">+ Lägg till kolli</button>
+            <button class="add-article-btn" id="add-art-btn">+ Lägg till artikel / kartong</button>
+            <button class="add-article-btn" id="add-excel-btn" style="margin-top:4px">+ Lägg till från Excel</button>
             <input type="file" id="add-excel-input" accept=".xlsx,.xls" style="display:none">
           </div>
         </div>
@@ -262,18 +264,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
     <div id="view-frakt" style="display:none">
       <div id="frakt-list-view">
         <div class="section-bar" style="border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:14px">
-          <span>Klara f&ouml;r frakt</span>
-          <button class="btn btn-sm" onclick="loadFraktList()">&#8635; Uppdatera</button>
+          <span>Klara för frakt</span>
+          <button class="btn btn-sm" onclick="loadFraktList()">↻ Uppdatera</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-          <input type="text" id="frakt-search" placeholder="&#128269; Sök ordernummer eller kund..." oninput="renderFraktList()" style="flex:1;min-width:180px;padding:7px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
+          <input type="text" id="frakt-search" placeholder="🔍 Sök ordernummer eller kund..." oninput="renderFraktList()" style="flex:1;min-width:180px;padding:7px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
           <select id="frakt-sort" onchange="renderFraktList()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
-            <option value="date-desc">Senast f&ouml;rst</option>
-            <option value="date-asc">&Auml;ldst f&ouml;rst</option>
-            <option value="order-asc">Ordernr A&ndash;&Ouml;</option>
-            <option value="order-desc">Ordernr &Ouml;&ndash;A</option>
-            <option value="customer-asc">Kund A&ndash;&Ouml;</option>
-            <option value="customer-desc">Kund &Ouml;&ndash;A</option>
+            <option value="date-desc">Senast först</option>
+            <option value="date-asc">Äldst först</option>
+            <option value="order-asc">Ordernr A–Ö</option>
+            <option value="order-desc">Ordernr Ö–A</option>
+            <option value="customer-asc">Kund A–Ö</option>
+            <option value="customer-desc">Kund Ö–A</option>
           </select>
         </div>
         <div class="card"><div id="frakt-orders-list"><div class="loading-row" style="padding:1rem"><div class="spinner"></div><span>Laddar...</span></div></div></div>
@@ -281,14 +283,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
       <div id="frakt-detail-view" style="display:none">
         <div class="pack-toolbar no-print">
           <div class="pack-toolbar-left">
-            <button class="btn btn-sm" onclick="showFraktList()">&larr; Tillbaka</button>
+            <button class="btn btn-sm" onclick="showFraktList()">← Tillbaka</button>
             <span class="pack-title" id="frakt-order-label"></span>
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm" onclick="reopenOrder()">&#8635; &Aring;ter&ouml;ppna</button>
-            <button class="btn btn-sm btn-success" onclick="markShipped()">&#10003; Markera skickad</button>
-            <button class="btn btn-sm btn-primary" onclick="printPackingList()">&#128424; Print packing list</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteFraktOrder()">&#128465; Ta bort</button>
+            <button class="btn btn-sm" onclick="reopenOrder()">↻ Återöppna</button>
+            <button class="btn btn-sm btn-success" onclick="markShipped()">✓ Markera skickad</button>
+            <button class="btn btn-sm btn-primary" onclick="printPackingList()">🖨 Print packing list</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteFraktOrder()">🗑 Ta bort</button>
           </div>
         </div>
         <div id="print-header" class="print-header" style="display:none"></div>
@@ -1095,5 +1097,6 @@ async function startApp() {
 }
 startApp();
 </script>
-</body>
-</html>
+
+
+</body></html>
