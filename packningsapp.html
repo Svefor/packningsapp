@@ -587,6 +587,7 @@ function renderPackView() {
   var kl = document.getElementById('pack-kollin');
   kl.innerHTML = '';
   o.kollin.forEach(function(k) {
+    if (k.pallId) return; // dölj kolli som tillhör en pall
     var items = o.articles.filter(function(a) { return a.kolli === k.id; });
     var wrap = document.createElement('div'); wrap.className = 'kolli-wrap';
     var head = document.createElement('div'); head.className = 'kolli-head';
@@ -659,8 +660,10 @@ function renderPackView() {
       var pallKollin = o.kollin.filter(function(k) { return k.pallId === p.id; });
       var removeP = document.createElement('button'); removeP.className = 'ki-back'; removeP.title = 'Ta bort pall'; removeP.textContent = '\u2715'; removeP.style.marginLeft = 'auto';
       (function(pid) { removeP.onclick = function() { removePall(pid); }; })(p.id);
+      var dissolveP = document.createElement('button'); dissolveP.className = 'ki-back'; dissolveP.title = 'Lös upp pall'; dissolveP.textContent = '\u21e7'; dissolveP.style.marginRight = '4px';
+      (function(pid) { dissolveP.onclick = function() { dissolvePall(pid); }; })(p.id);
       ph.innerHTML = '<span class="pall-icon">&#128717;</span><span class="pall-label">' + esc(p.nr) + ' \u2013 ' + esc(p.desc) + '</span><span style="font-size:12px;color:#A8A8A6">' + pallKollin.length + ' kolli</span>';
-      ph.appendChild(removeP);
+      ph.appendChild(dissolveP); ph.appendChild(removeP);
       var pklist = document.createElement('div'); pklist.className = 'pall-kolli-list';
       pallKollin.forEach(function(k) {
         var pki = document.createElement('div'); pki.className = 'pall-kolli-item';
@@ -683,7 +686,19 @@ function renderPackView() {
           }
         });
       })(p.id);
-      pw.appendChild(ph); pw.appendChild(pklist); pw.appendChild(pdz);
+      var pmeta = document.createElement('div'); pmeta.className = 'kolli-meta';
+      var pwLabel = document.createElement('label'); pwLabel.textContent = 'Vikt:';
+      var pwInput = document.createElement('input'); pwInput.type = 'number'; pwInput.placeholder = 'kg'; pwInput.value = p.weight || ''; pwInput.style.width = '70px';
+      (function(pid) { pwInput.oninput = function() { var pall = currentOrder.pallar.find(function(x){return x.id===pid;}); if(pall){pall.weight=this.value;scheduleSave();} }; })(p.id);
+      var pdLabel = document.createElement('label'); pdLabel.textContent = 'L\u00d7B\u00d7H:';
+      var plInput = document.createElement('input'); plInput.type = 'number'; plInput.placeholder = 'L'; plInput.value = p.dimL || ''; plInput.style.width = '55px';
+      (function(pid) { plInput.oninput = function() { var pall = currentOrder.pallar.find(function(x){return x.id===pid;}); if(pall){pall.dimL=this.value;scheduleSave();} }; })(p.id);
+      var pbInput = document.createElement('input'); pbInput.type = 'number'; pbInput.placeholder = 'B'; pbInput.value = p.dimW || ''; pbInput.style.width = '55px';
+      (function(pid) { pbInput.oninput = function() { var pall = currentOrder.pallar.find(function(x){return x.id===pid;}); if(pall){pall.dimW=this.value;scheduleSave();} }; })(p.id);
+      var phInput = document.createElement('input'); phInput.type = 'number'; phInput.placeholder = 'H'; phInput.value = p.dimH || ''; phInput.style.width = '55px';
+      (function(pid) { phInput.oninput = function() { var pall = currentOrder.pallar.find(function(x){return x.id===pid;}); if(pall){pall.dimH=this.value;scheduleSave();} }; })(p.id);
+      pmeta.appendChild(pwLabel); pmeta.appendChild(pwInput); pmeta.appendChild(pdLabel); pmeta.appendChild(plInput); pmeta.appendChild(pbInput); pmeta.appendChild(phInput);
+      pw.appendChild(ph); pw.appendChild(pklist); pw.appendChild(pdz); pw.appendChild(pmeta);
       kl.appendChild(pw);
     });
   }
@@ -963,6 +978,12 @@ function doAddPall(btn) {
   var pallCount = currentOrder.pallar.filter(function(x) { return x.nr === p.nr; }).length;
   currentOrder.pallar.push({id:'pall'+Date.now(), nr:p.nr, desc:p.desc, label:'Pall '+(currentOrder.pallar.length+1)});
   btn.closest('.modal-overlay').remove();
+  scheduleSave(); renderPackView();
+}
+
+function dissolvePall(pid) {
+  currentOrder.kollin.forEach(function(k) { if (k.pallId === pid) delete k.pallId; });
+  currentOrder.pallar = currentOrder.pallar.filter(function(p) { return p.id !== pid; });
   scheduleSave(); renderPackView();
 }
 
