@@ -70,7 +70,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .btn-edit-order{background:none;border:none;color:#A8A8A6;font-size:14px;cursor:pointer;padding:2px 5px;border-radius:4px;line-height:1;transition:color .12s}
 .btn-edit-order:hover{color:#E87722}
 .pack-title{font-size:15px;font-weight:700;color:#D0D0CE}
-.columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;height:calc(100vh - 180px)}
+.columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;height:calc(100vh - 180px);align-items:start}
 @media(max-width:600px){.columns{grid-template-columns:1fr}}
 .col-label{font-size:11px;font-weight:700;color:#D0D0CE;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .article-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:5px;background:var(--surface);cursor:grab;user-select:none;transition:box-shadow .1s,background .1s}
@@ -257,18 +257,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
         </div>
         <div class="save-status" id="save-status"></div>
         <div class="columns">
-          <div>
+          <div style="display:flex;flex-direction:column;height:calc(100vh - 180px)">
             <div class="col-label"><span>Artiklar att packa</span><span id="unpack-count"></span></div>
-            <div id="pack-articles" style="height:calc(100vh - 240px);overflow-y:auto;padding-right:4px"></div>
+            <div id="pack-articles" style="flex:1;overflow-y:auto;padding-right:4px;min-height:0"></div>
           </div>
-          <div>
+          <div style="display:flex;flex-direction:column;height:calc(100vh - 180px)">
             <div class="col-label">Kollin</div>
-            <div id="pack-kollin" style="height:calc(100vh - 300px);overflow-y:auto;padding-right:4px"></div>
-            <button class="add-kolli-btn" onclick="addKolliCurrent()">+ Lägg till kolli</button>
-            <button class="add-pall-btn" onclick="addPallCurrent()">🪵 + Lägg till pall</button>
-            <button class="add-article-btn" id="add-art-btn">+ Lägg till artikel / kartong</button>
-            <button class="add-article-btn" id="add-excel-btn" style="margin-top:4px">+ Lägg till från Excel</button>
-            <input type="file" id="add-excel-input" accept=".xlsx,.xls" style="display:none">
+            <div id="pack-kollin" style="flex:1;overflow-y:auto;padding-right:4px;min-height:0"></div>
+            <div style="padding-top:6px;flex-shrink:0">
+              <button class="add-kolli-btn" onclick="addKolliCurrent()">+ Lägg till kolli</button>
+              <button class="add-pall-btn" onclick="addPallCurrent()">🪵 + Lägg till pall</button>
+              <button class="add-article-btn" id="add-art-btn">+ Lägg till artikel / kartong</button>
+              <button class="add-article-btn" id="add-excel-btn" style="margin-top:4px">+ Lägg till från Excel</button>
+              <input type="file" id="add-excel-input" accept=".xlsx,.xls" style="display:none">
+            </div>
           </div>
         </div>
       </div>
@@ -646,21 +648,18 @@ function renderPackView() {
     wrap.appendChild(head); wrap.appendChild(body); wrap.appendChild(meta); kl.appendChild(wrap);
   });
 
-  // Render pallar
-  var existingPallSection = document.getElementById('pack-pallar-section');
-  if (existingPallSection) existingPallSection.remove();
+  // Render pallar inside same kl container
   if (o.pallar && o.pallar.length > 0) {
-    var pallSection = document.createElement('div'); pallSection.id = 'pack-pallar-section'; pallSection.style.marginTop = '12px';
-    var pallLabel = document.createElement('div'); pallLabel.className = 'col-label'; pallLabel.style.marginBottom = '8px';
+    var pallLabel = document.createElement('div'); pallLabel.className = 'col-label'; pallLabel.style.cssText = 'margin-top:14px;margin-bottom:8px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px';
     pallLabel.innerHTML = '<span>Pallar</span>';
-    pallSection.appendChild(pallLabel);
+    kl.appendChild(pallLabel);
     o.pallar.forEach(function(p) {
       var pw = document.createElement('div'); pw.className = 'pall-wrap';
       var ph = document.createElement('div'); ph.className = 'pall-head';
       var pallKollin = o.kollin.filter(function(k) { return k.pallId === p.id; });
       var removeP = document.createElement('button'); removeP.className = 'ki-back'; removeP.title = 'Ta bort pall'; removeP.textContent = '\u2715'; removeP.style.marginLeft = 'auto';
       (function(pid) { removeP.onclick = function() { removePall(pid); }; })(p.id);
-      ph.innerHTML = '<span class="pall-icon">&#128717;</span><span class="pall-label">' + esc(p.nr) + ' – ' + esc(p.desc) + '</span><span style="font-size:12px;color:#A8A8A6">' + pallKollin.length + ' kolli</span>';
+      ph.innerHTML = '<span class="pall-icon">&#128717;</span><span class="pall-label">' + esc(p.nr) + ' \u2013 ' + esc(p.desc) + '</span><span style="font-size:12px;color:#A8A8A6">' + pallKollin.length + ' kolli</span>';
       ph.appendChild(removeP);
       var pklist = document.createElement('div'); pklist.className = 'pall-kolli-list';
       pallKollin.forEach(function(k) {
@@ -685,9 +684,8 @@ function renderPackView() {
         });
       })(p.id);
       pw.appendChild(ph); pw.appendChild(pklist); pw.appendChild(pdz);
-      pallSection.appendChild(pw);
+      kl.appendChild(pw);
     });
-    kl.parentNode.appendChild(pallSection);
   }
 }
 
