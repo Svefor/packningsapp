@@ -673,6 +673,13 @@ function renderPackView() {
         (function(kid) { removeKfP.onclick = function(e) { e.stopPropagation(); removeKolliFromPall(kid); }; })(k.id);
         var chevron = document.createElement('span'); chevron.textContent = '\u25b6'; chevron.style.cssText = 'font-size:9px;color:#A8A8A6;transition:transform .15s;margin-right:2px';
         var artList = document.createElement('div'); artList.style.cssText = 'display:none;width:100%;padding:4px 0 2px 16px;border-top:1px solid var(--border);margin-top:4px';
+        if (k.weight || k.dimL) {
+          var metaRow = document.createElement('div'); metaRow.style.cssText = 'font-size:11px;color:var(--text3);padding:2px 0 4px;display:flex;gap:8px';
+          if (k.weight) { var wSpan = document.createElement('span'); wSpan.textContent = '\u2696\ufe0f ' + k.weight + ' kg'; metaRow.appendChild(wSpan); }
+          var dims = [k.dimL, k.dimW, k.dimH].filter(Boolean).join('\u00d7');
+          if (dims) { var dSpan = document.createElement('span'); dSpan.textContent = '\ud83d\udccf ' + dims + ' cm'; metaRow.appendChild(dSpan); }
+          artList.appendChild(metaRow);
+        }
         arts.forEach(function(a) {
           var artRow = document.createElement('div'); artRow.style.cssText = 'font-size:11px;color:var(--text2);padding:2px 0;display:flex;justify-content:space-between';
           artRow.innerHTML = '<span>' + esc(a.name) + '</span><span style="color:var(--text3)">' + esc(a.qty) + '</span>';
