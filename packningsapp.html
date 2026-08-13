@@ -84,6 +84,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .empty-state{text-align:center;padding:2.5rem 1rem;color:#A8A8A6;font-size:14px}
 .es-icon{font-size:2rem;display:block;margin-bottom:8px}
 .article-item.dragging{opacity:.35}
+.pall-wrap{background:rgba(0,0,0,.12);border:2px solid rgba(255,255,255,.15);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.pall-head{padding:8px 12px;background:rgba(0,0,0,.25);color:#D0D0CE;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.pall-head .pall-icon{font-size:16px}
+.pall-head .pall-label{flex:1}
+.pall-kolli-list{padding:6px 8px;min-height:36px}
+.pall-kolli-item{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:4px;font-size:12px;border:1px solid var(--border)}
+.pall-kolli-item .pki-label{flex:1;font-weight:600;color:var(--topbar)}
+.pall-kolli-item .pki-count{color:var(--text2)}
+.pall-drop-zone{border:1.5px dashed rgba(255,255,255,.2);border-radius:var(--radius-sm);padding:8px;text-align:center;font-size:12px;color:#A8A8A6;margin:4px 8px 8px}
+.pall-drop-zone.drag-target{border-color:var(--accent);background:rgba(232,119,34,.1);color:var(--accent)}
+.add-pall-btn{width:100%;padding:8px;font-size:13px;border-radius:var(--radius-sm);border:1.5px dashed rgba(255,255,255,.25);background:none;color:#A8A8A6;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .12s;margin-top:6px}
+.add-pall-btn:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
 .drag-handle{color:var(--text3);font-size:12px;cursor:grab;flex-shrink:0}
 .ai-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ai-qty{font-size:12px;color:var(--text2);white-space:nowrap}
@@ -253,6 +265,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
             <div class="col-label">Kollin</div>
             <div id="pack-kollin" style="height:calc(100vh - 300px);overflow-y:auto;padding-right:4px"></div>
             <button class="add-kolli-btn" onclick="addKolliCurrent()">+ Lägg till kolli</button>
+            <button class="add-pall-btn" onclick="addPallCurrent()">🪵 + Lägg till pall</button>
             <button class="add-article-btn" id="add-art-btn">+ Lägg till artikel / kartong</button>
             <button class="add-article-btn" id="add-excel-btn" style="margin-top:4px">+ Lägg till från Excel</button>
             <input type="file" id="add-excel-input" accept=".xlsx,.xls" style="display:none">
@@ -341,6 +354,7 @@ var currentOrderId = null;
 var siteId = null;
 var listId = null;
 var dragItem = null;
+var dragKolli = null;
 var saveTimeout = null;
 var scopes = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
 
@@ -497,7 +511,7 @@ async function startEmptyOrder() {
   var on = document.getElementById('order-num-input').value.trim();
   if (!on) { showNewOrderError('Fyll i ordernummer först.'); return; }
   try {
-    var order = {id:'ord'+Date.now(), orderNum:on, customer:document.getElementById('customer-input').value.trim(), status:'packing', createdAt:Date.now(), articles:[], kollin:[{id:'k0',label:'Kolli 1'}]};
+    var order = {id:'ord'+Date.now(), orderNum:on, customer:document.getElementById('customer-input').value.trim(), status:'packing', createdAt:Date.now(), articles:[], kollin:[{id:'k0',label:'Kolli 1'}], pallar:[]};
     order = await saveOrderToSP(order);
     currentOrder = order;
     document.getElementById('packare-new-view').style.display = 'none';
@@ -575,6 +589,11 @@ function renderPackView() {
     var wrap = document.createElement('div'); wrap.className = 'kolli-wrap';
     var head = document.createElement('div'); head.className = 'kolli-head';
     head.innerHTML = '<span>&#128230;</span><span class="kolli-num-label">' + esc(k.label) + '</span><span class="kolli-count">' + items.length + ' art.</span>';
+    head.draggable = true;
+    (function(kid) {
+      head.addEventListener('dragstart', function(e) { dragKolli = kid; e.dataTransfer.effectAllowed = 'move'; e.stopPropagation(); });
+      head.addEventListener('dragend', function() { dragKolli = null; });
+    })(k.id);
     if (o.kollin.length > 1) {
       var removeBtn = document.createElement('button'); removeBtn.className = 'ki-back'; removeBtn.title = 'Ta bort kolli'; removeBtn.textContent = '\u2715';
       (function(kid) { removeBtn.onclick = function() { removeKolliOrder(kid); }; })(k.id);
@@ -626,6 +645,50 @@ function renderPackView() {
     });
     wrap.appendChild(head); wrap.appendChild(body); wrap.appendChild(meta); kl.appendChild(wrap);
   });
+
+  // Render pallar
+  var existingPallSection = document.getElementById('pack-pallar-section');
+  if (existingPallSection) existingPallSection.remove();
+  if (o.pallar && o.pallar.length > 0) {
+    var pallSection = document.createElement('div'); pallSection.id = 'pack-pallar-section'; pallSection.style.marginTop = '12px';
+    var pallLabel = document.createElement('div'); pallLabel.className = 'col-label'; pallLabel.style.marginBottom = '8px';
+    pallLabel.innerHTML = '<span>Pallar</span>';
+    pallSection.appendChild(pallLabel);
+    o.pallar.forEach(function(p) {
+      var pw = document.createElement('div'); pw.className = 'pall-wrap';
+      var ph = document.createElement('div'); ph.className = 'pall-head';
+      var pallKollin = o.kollin.filter(function(k) { return k.pallId === p.id; });
+      var removeP = document.createElement('button'); removeP.className = 'ki-back'; removeP.title = 'Ta bort pall'; removeP.textContent = '\u2715'; removeP.style.marginLeft = 'auto';
+      (function(pid) { removeP.onclick = function() { removePall(pid); }; })(p.id);
+      ph.innerHTML = '<span class="pall-icon">&#128717;</span><span class="pall-label">' + esc(p.nr) + ' – ' + esc(p.desc) + '</span><span style="font-size:12px;color:#A8A8A6">' + pallKollin.length + ' kolli</span>';
+      ph.appendChild(removeP);
+      var pklist = document.createElement('div'); pklist.className = 'pall-kolli-list';
+      pallKollin.forEach(function(k) {
+        var pki = document.createElement('div'); pki.className = 'pall-kolli-item';
+        var arts = o.articles.filter(function(a) { return a.kolli === k.id; });
+        var removeKfP = document.createElement('button'); removeKfP.className = 'ki-back'; removeKfP.title = 'Ta bort från pall'; removeKfP.textContent = '\u21a9';
+        (function(kid) { removeKfP.onclick = function() { removeKolliFromPall(kid); }; })(k.id);
+        pki.innerHTML = '<span class="pki-label">&#128230; ' + esc(k.label) + '</span><span class="pki-count">' + arts.length + ' art.</span>';
+        pki.appendChild(removeKfP);
+        pklist.appendChild(pki);
+      });
+      var pdz = document.createElement('div'); pdz.className = 'pall-drop-zone'; pdz.textContent = 'Dra kolli hit';
+      (function(pid) {
+        pdz.addEventListener('dragover', function(e) { e.preventDefault(); if (dragKolli) pdz.classList.add('drag-target'); });
+        pdz.addEventListener('dragleave', function() { pdz.classList.remove('drag-target'); });
+        pdz.addEventListener('drop', function(e) {
+          e.preventDefault(); pdz.classList.remove('drag-target');
+          if (dragKolli) {
+            var k = currentOrder.kollin.find(function(x) { return x.id === dragKolli; });
+            if (k) { k.pallId = pid; dragKolli = null; scheduleSave(); renderPackView(); }
+          }
+        });
+      })(p.id);
+      pw.appendChild(ph); pw.appendChild(pklist); pw.appendChild(pdz);
+      pallSection.appendChild(pw);
+    });
+    kl.parentNode.appendChild(pallSection);
+  }
 }
 
 var printMode = false;
@@ -635,33 +698,68 @@ function fraktLabel(label) {
 }
 var LOGO_PRINT_SRC = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIKCSB2aWV3Qm94PSIwIDAgODQxLjkgMTM1LjUiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDg0MS45IDEzNS41OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxnPgoJPHBhdGggZD0iTTIwMSw5NWwxMi4xLTE3LjNjNS44LDUuNSwxNC40LDkuOSwyNC44LDkuOWM0LjQsMCw4LjUtMS4yLDguNS00LjJjMC03LjQtNDIuOSwwLjEtNDIuOS0zMC4yYzAtMTMsMTAuOC0yNS41LDMxLjktMjUuNWMxMi42LDAsMjMuOSwzLjYsMzIuNiwxMC43TDI1NS42LDU1Yy02LjctNS4xLTE1LjMtNy42LTIyLjYtNy42Yy00LjYsMC01LjksMS41LTUuOSwzLjRjMCw3LjMsNDIuOCwxLjEsNDIuOCwyOS42YzAsMTYuOS0xMi42LDI2LjctMzMuMiwyNi43QzIyMC40LDEwNy4yLDIwOS4yLDEwMi40LDIwMSw5NSIvPgoJPHBhdGggZD0iTTI3NC45LDY3LjVjMC0yMy43LDE4LjItMzkuOCw0Mi4zLTM5LjhjMjAuMiwwLDMwLjMsMTEuOCwzNC45LDIyLjRsLTIwLDkuM2MtMi02LTgtMTEuMi0xNC45LTExLjJjLTExLjIsMC0xOC43LDguNS0xOC43LDE5LjJjMCwxMC43LDcuNSwxOS4yLDE4LjcsMTkuMmM2LjksMCwxMi45LTUuMiwxNC45LTExLjJsMjAsOS4yYy00LjUsMTAuMy0xNC43LDIyLjUtMzQuOSwyMi41QzI5My4yLDEwNy4zLDI3NC45LDkxLjEsMjc0LjksNjcuNSIvPgoJPHBhdGggZD0iTTU5OS45LDY3LjVjMC0yMy43LDE4LjItMzkuOCw0Mi4zLTM5LjhjMjAuMiwwLDMwLjMsMTEuOCwzNC45LDIyLjRsLTIwLjEsOS4zYy0yLTYtNy45LTExLjItMTQuOS0xMS4yYy0xMS4yLDAtMTguNyw4LjUtMTguNywxOS4yYzAsMTAuNyw3LjUsMTkuMiwxOC43LDE5LjJjNi45LDAsMTIuOS01LjIsMTQuOS0xMS4ybDIwLjEsOS4yYy00LjUsMTAuMy0xNC43LDIyLjUtMzQuOSwyMi41QzYxOC4xLDEwNy4zLDU5OS45LDkxLjEsNTk5LjksNjcuNSIvPgoJPHBhdGggZD0iTTQwOS41LDEwNmwtMi44LTloLTI3LjdsLTIuOCw5aC0yNi40bDI4LjMtNzYuOWgyOS4zbDI4LjQsNzYuOUg0MDkuNXogTTM5Mi45LDUxLjlsLTcuNiwyNC44aDE1LjJMMzkyLjksNTEuOXoiLz4KCTxwb2x5Z29uIHBvaW50cz0iNDkxLjUsMTA2IDQ2My4xLDY3IDQ2My4xLDEwNiA0MzkuOCwxMDYgNDM5LjgsMjkuMSA0NjMuOCwyOS4xIDQ5MC41LDY1LjUgNDkwLjUsMjkuMSA1MTMuOCwyOS4xIDUxMy44LDEwNiAJIi8+Cgk8cGF0aCBkPSJNNTc3LjMsMTA2bC0yLjgtOWgtMjcuN2wtMi44LDloLTI2LjRsMjguNC03Ni45aDI5LjNsMjguMyw3Ni45SDU3Ny4zeiBNNTYwLjcsNTEuOWwtNy42LDI0LjhoMTUuMkw1NjAuNyw1MS45eiIvPgoJPHBvbHlnb24gcG9pbnRzPSI4MTUuMywxMDYuMSA3ODcuMyw2Ni45IDc4Ni45LDEwNS44IDc2My42LDEwNS42IDc2NC4zLDI4LjcgNzg4LjMsMjkgODE0LjcsNjUuNiA4MTUsMjkuMiA4MzguMywyOS40IDgzNy42LDEwNi4zICIvPgoJPHBhdGggZD0iTTcxOC45LDI3LjljLTIxLjgsMC0zOS42LDE3LjgtMzkuNiwzOS43YzAsMjEuOSwxNy44LDM5LjYsMzkuNiwzOS42YzIxLjksMCwzOS43LTE3LjgsMzkuNy0zOS42Qzc1OC42LDQ1LjcsNzQwLjgsMjcuOSw3MTguOSwyNy45IE03MTguOSw4Ny44Yy0xMS4yLDAtMjAuMi05LjEtMjAuMi0yMC4zYzAtMTEuMiw5LjEtMjAuMywyMC4yLTIwLjNjMTEuMiwwLDIwLjMsOS4xLDIwLjMsMjAuM0M3MzkuMiw3OC43LDczMC4xLDg3LjgsNzE4LjksODcuOCIvPgoJPHBvbHlnb24gcG9pbnRzPSI1My4zLDgwLjQgNTMuMyw4MC40IDEuMyw1NC45IDEuMywxMDUuOSAxLjMsMTA2IDUzLjMsMTMxLjUgMTA1LjQsMTA2IDEwNS40LDU0LjkgCSIvPgoJPHBhdGggZD0iTTUxLjYsODMuMlYyOC4zTDEwNS40LDJsNTMuOCwyNi4zdjU0LjhsLTUzLjgtMjYuNEw1MS42LDgzLjJ6IE0xMDUuMyw1M2wwLjgsMC40bDQ5LjYsMjQuM1YzMC41TDEwNS40LDUuOEw1NSwzMC41djQ3LjNMMTA1LjMsNTN6Ii8+CjwvZz4KPC9zdmc+";
 
+function makePrintHeader(o) {
+  var ph2 = document.createElement('div'); ph2.className = 'card-print-header';
+  ph2.innerHTML = '<img src="' + LOGO_PRINT_SRC + '" style="height:30px" alt="Scanacon"><h2>Packing List \u2013 ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Customer: ' + esc(o.customer) + '  \u00b7  ' : '') + 'Date: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
+  return ph2;
+}
+
+function makeKolliBlock(k, items, o) {
+  var dims = [k.dimL, k.dimW, k.dimH].filter(Boolean).join('\u00d7');
+  var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00b7  ');
+  var hdr = document.createElement('div'); hdr.className = 'frakt-kolli-header';
+  hdr.innerHTML = '<span>&#128230; ' + esc(fraktLabel(k.label)) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
+  var tbl = document.createElement('table'); tbl.className = 'frakt-table';
+  items.forEach(function(a) {
+    var tr = document.createElement('tr');
+    var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text2)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
+    var modStyle = a.isModified ? ' style="font-weight:500"' : ' style="font-weight:500"';
+    tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span class="new-addition-badge" style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
+    tbl.appendChild(tr);
+  });
+  return [hdr, tbl];
+}
+
 function renderFraktView() {
   var o = currentOrder;
   var container = document.getElementById('frakt-kolli-view');
   container.innerHTML = '';
+
+  // Pallar: one card per pall containing all its kolli
+  var pallar = o.pallar || [];
+  pallar.forEach(function(p) {
+    var pallKollin = o.kollin.filter(function(k) { return k.pallId === p.id; });
+    if (pallKollin.length === 0) return;
+    var card = document.createElement('div'); card.className = 'frakt-kolli-card';
+    if (printMode) card.appendChild(makePrintHeader(o));
+    // Pall header
+    var pallHdr = document.createElement('div'); pallHdr.className = 'frakt-kolli-header';
+    var totalItems = 0;
+    pallKollin.forEach(function(k) { totalItems += o.articles.filter(function(a) { return a.kolli === k.id; }).length; });
+    pallHdr.innerHTML = '<span>&#128717; ' + esc(p.nr) + ' \u2013 ' + esc(p.desc) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + pallKollin.length + ' package' + (pallKollin.length !== 1 ? 's' : '') + '  \u00b7  ' + totalItems + ' items</span>';
+    card.appendChild(pallHdr);
+    // Each kolli in the pall
+    pallKollin.forEach(function(k) {
+      var items = o.articles.filter(function(a) { return a.kolli === k.id; });
+      if (items.length === 0) return;
+      var blocks = makeKolliBlock(k, items, o);
+      blocks.forEach(function(b) { card.appendChild(b); });
+    });
+    container.appendChild(card);
+  });
+
+  // Standalone kolli (no pall) – one card each
   o.kollin.forEach(function(k) {
+    if (k.pallId) return; // skip kolli assigned to a pall
     var items = o.articles.filter(function(a) { return a.kolli === k.id; });
     if (items.length === 0) return;
-    var dims = [k.dimL, k.dimW, k.dimH].filter(Boolean).join('\u00d7');
-    var metaStr = [k.weight ? k.weight + ' kg' : '', dims ? dims + ' cm' : ''].filter(Boolean).join('  \u00b7  ');
     var card = document.createElement('div'); card.className = 'frakt-kolli-card';
-    if (printMode) {
-      var ph2 = document.createElement('div'); ph2.className = 'card-print-header';
-      ph2.innerHTML = '<img src="' + LOGO_PRINT_SRC + '" style="height:30px" alt="Scanacon"><h2>Packing List \u2013 ' + esc(o.orderNum) + '</h2><p>' + (o.customer ? 'Customer: ' + esc(o.customer) + '  \u00b7  ' : '') + 'Date: ' + new Date().toLocaleDateString('sv-SE') + '</p>';
-      card.appendChild(ph2);
-    }
-    var hdr = document.createElement('div'); hdr.className = 'frakt-kolli-header';
-    hdr.innerHTML = '<span>&#128230; ' + esc(fraktLabel(k.label)) + '</span><span style="font-size:12px;color:rgba(255,255,255,0.75)">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + (metaStr ? '  \u00b7  ' + metaStr : '') + '</span>';
-    var tbl = document.createElement('table'); tbl.className = 'frakt-table';
-    items.forEach(function(a) {
-      var tr = document.createElement('tr');
-      var serialText = (a.serials && a.serials.length > 0) ? ' <span style="font-size:11px;color:var(--text2)">[' + a.serials.map(function(s){return esc(s);}).join(', ') + ']</span>' : '';
-      var modStyle = a.isModified ? ' style="font-weight:500"' : ' style="font-weight:500"';
-      tr.innerHTML = '<td' + modStyle + '>' + esc(a.name) + (a.isModified ? ' <span class="new-addition-badge" style="font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px">NEW/ADDITION</span>' : '') + serialText + '</td><td style="text-align:right;color:var(--text2)">' + esc(a.qty) + '</td><td style="text-align:right;color:var(--text3);font-size:11px">' + esc(a.location||'') + '</td>';
-      tbl.appendChild(tr);
-    });
-    card.appendChild(hdr); card.appendChild(tbl); container.appendChild(card);
+    if (printMode) card.appendChild(makePrintHeader(o));
+    var blocks = makeKolliBlock(k, items, o);
+    blocks.forEach(function(b) { card.appendChild(b); });
+    container.appendChild(card);
   });
+
   var unpacked = o.articles.filter(function(a) { return a.kolli === null; });
   if (unpacked.length > 0) {
     var warn = document.createElement('div'); warn.className = 'warn-card';
@@ -844,6 +942,42 @@ function openAddArtModal() {
   acts.appendChild(cancelBtn); acts.appendChild(addBtn);
   modal.appendChild(h3); modal.appendChild(f1); modal.appendChild(f2); modal.appendChild(f3); modal.appendChild(f4); modal.appendChild(acts);
   overlay.appendChild(modal); document.body.appendChild(overlay);
+}
+
+var PALLAR = [{"nr": "1403-0001", "desc": "Pallett, 80x60x14cm, ISPM 15 compliable IPPC mrk"}, {"nr": "1403-0002", "desc": "Pallett, 120x80x10cm, ISPM 15 compliable IPPC mrk"}, {"nr": "1403-0003", "desc": "Pallet, 165x54x12cm, ISPM 15 compliable IPPC mrk"}];
+
+function addPallCurrent() {
+  var overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+  var opts = PALLAR.map(function(p) { return '<option value="' + p.nr + '">' + p.nr + ' – ' + p.desc + '</option>'; }).join('');
+  overlay.innerHTML = '<div class="modal"><h3>Lägg till pall</h3>' +
+    '<div class="modal-field"><label>Välj pall</label><select id="pall-select" style="width:100%"><option value="">-- Välj --</option>' + opts + '</select></div>' +
+    '<div class="modal-actions"><button class="btn btn-sm" onclick="this.closest(\'.modal-overlay\').remove()">Avbryt</button>' +
+    '<button class="btn btn-sm btn-primary" onclick="doAddPall(this)">Lägg till</button></div></div>';
+  document.body.appendChild(overlay);
+}
+
+function doAddPall(btn) {
+  var sel = document.getElementById('pall-select').value;
+  if (!sel) { alert('Välj en pall.'); return; }
+  var p = PALLAR.find(function(x) { return x.nr === sel; });
+  if (!p) return;
+  if (!currentOrder.pallar) currentOrder.pallar = [];
+  var pallCount = currentOrder.pallar.filter(function(x) { return x.nr === p.nr; }).length;
+  currentOrder.pallar.push({id:'pall'+Date.now(), nr:p.nr, desc:p.desc, label:'Pall '+(currentOrder.pallar.length+1)});
+  btn.closest('.modal-overlay').remove();
+  scheduleSave(); renderPackView();
+}
+
+function removePall(pid) {
+  if (!confirm('Ta bort pallen? Kolli som tillhör pallen blir fria igen.')) return;
+  currentOrder.kollin.forEach(function(k) { if (k.pallId === pid) delete k.pallId; });
+  currentOrder.pallar = currentOrder.pallar.filter(function(p) { return p.id !== pid; });
+  scheduleSave(); renderPackView();
+}
+
+function removeKolliFromPall(kid) {
+  var k = currentOrder.kollin.find(function(x) { return x.id === kid; });
+  if (k) { delete k.pallId; scheduleSave(); renderPackView(); }
 }
 
 function addKolliCurrent() { var n = currentOrder.kollin.length + 1; currentOrder.kollin.push({id:'k'+Date.now(), label:'Kolli '+n}); scheduleSave(); renderPackView(); }
