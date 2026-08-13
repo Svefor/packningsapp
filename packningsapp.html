@@ -89,7 +89,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .pall-head .pall-icon{font-size:16px}
 .pall-head .pall-label{flex:1}
 .pall-kolli-list{padding:6px 8px;min-height:36px}
-.pall-kolli-item{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:4px;font-size:12px;border:1px solid var(--border)}
+.pall-kolli-item{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:4px;font-size:12px;border:1px solid var(--border);cursor:pointer;user-select:none}
+.pall-kolli-item:hover{background:var(--surface2)}
 .pall-kolli-item .pki-label{flex:1;font-weight:600;color:var(--topbar)}
 .pall-kolli-item .pki-count{color:var(--text2)}
 .pall-drop-zone{border:1.5px dashed rgba(255,255,255,.2);border-radius:var(--radius-sm);padding:8px;text-align:center;font-size:12px;color:#A8A8A6;margin:4px 8px 8px}
@@ -666,12 +667,27 @@ function renderPackView() {
       ph.appendChild(dissolveP); ph.appendChild(removeP);
       var pklist = document.createElement('div'); pklist.className = 'pall-kolli-list';
       pallKollin.forEach(function(k) {
-        var pki = document.createElement('div'); pki.className = 'pall-kolli-item';
+        var pki = document.createElement('div'); pki.className = 'pall-kolli-item'; pki.style.flexWrap = 'wrap'; pki.style.cursor = 'pointer';
         var arts = o.articles.filter(function(a) { return a.kolli === k.id; });
         var removeKfP = document.createElement('button'); removeKfP.className = 'ki-back'; removeKfP.title = 'Ta bort från pall'; removeKfP.textContent = '\u21a9';
-        (function(kid) { removeKfP.onclick = function() { removeKolliFromPall(kid); }; })(k.id);
-        pki.innerHTML = '<span class="pki-label">&#128230; ' + esc(k.label) + '</span><span class="pki-count">' + arts.length + ' art.</span>';
-        pki.appendChild(removeKfP);
+        (function(kid) { removeKfP.onclick = function(e) { e.stopPropagation(); removeKolliFromPall(kid); }; })(k.id);
+        var chevron = document.createElement('span'); chevron.textContent = '\u25b6'; chevron.style.cssText = 'font-size:9px;color:#A8A8A6;transition:transform .15s;margin-right:2px';
+        var artList = document.createElement('div'); artList.style.cssText = 'display:none;width:100%;padding:4px 0 2px 16px;border-top:1px solid var(--border);margin-top:4px';
+        arts.forEach(function(a) {
+          var artRow = document.createElement('div'); artRow.style.cssText = 'font-size:11px;color:var(--text2);padding:2px 0;display:flex;justify-content:space-between';
+          artRow.innerHTML = '<span>' + esc(a.name) + '</span><span style="color:var(--text3)">' + esc(a.qty) + '</span>';
+          artList.appendChild(artRow);
+        });
+        pki.innerHTML = '';
+        pki.appendChild(chevron);
+        var pkiLabel = document.createElement('span'); pkiLabel.className = 'pki-label'; pkiLabel.textContent = '\ud83d\udce6 ' + k.label;
+        var pkiCount = document.createElement('span'); pkiCount.className = 'pki-count'; pkiCount.textContent = arts.length + ' art.';
+        pki.appendChild(pkiLabel); pki.appendChild(pkiCount); pki.appendChild(removeKfP); pki.appendChild(artList);
+        pki.addEventListener('click', function() {
+          var open = artList.style.display !== 'none';
+          artList.style.display = open ? 'none' : 'block';
+          chevron.style.transform = open ? '' : 'rotate(90deg)';
+        });
         pklist.appendChild(pki);
       });
       var pdz = document.createElement('div'); pdz.className = 'pall-drop-zone'; pdz.textContent = 'Dra kolli hit';
