@@ -550,6 +550,8 @@ function renderPackView() {
       var name = document.createElement('span'); name.className = 'ai-name'; name.textContent = a.name; if (a.isBackorder) { var boBadge = document.createElement('span'); boBadge.style.cssText = 'font-size:10px;background:#f5a623;color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle'; boBadge.textContent = 'RESTORDER'; name.appendChild(boBadge); }
       var qty = document.createElement('span'); qty.className = 'ai-qty'; qty.textContent = a.qty;
       var actions = document.createElement('div'); actions.className = 'art-actions';
+      var splitBtn = document.createElement('button'); splitBtn.className = 'art-btn'; splitBtn.title = 'Dela upp'; splitBtn.textContent = '✂';
+      (function(aid) { splitBtn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); splitArticle(aid); }; })(a.id);
       var serialBtn = document.createElement('button'); serialBtn.className = 'art-btn'; serialBtn.title = 'Serie-/lotnummer'; serialBtn.textContent = '\ud83d\udd22';
       serialBtn.style.opacity = a.serials && a.serials.length > 0 ? '1' : '0.4';
       (function(aid) { serialBtn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); openSerialModal(aid); }; })(a.id);
@@ -557,7 +559,7 @@ function renderPackView() {
       (function(aid) { editBtn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); openEditQty(aid); }; })(a.id);
       var delBtn = document.createElement('button'); delBtn.className = 'art-btn'; delBtn.title = 'Ta bort'; delBtn.textContent = '\ud83d\uddd1';
       (function(aid) { delBtn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); deleteArticle(aid); }; })(a.id);
-      actions.appendChild(serialBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
+      actions.appendChild(splitBtn); actions.appendChild(serialBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
       d.appendChild(handle); d.appendChild(name); d.appendChild(qty);
       if (a.location) { var loc = document.createElement('span'); loc.className = 'ai-loc'; loc.textContent = a.location; d.appendChild(loc); }
       d.appendChild(actions);
@@ -703,6 +705,44 @@ function saveOrderMeta(btn) {
 }
 
 function updateKolliMeta(kid, field, value) { var k = currentOrder.kollin.find(function(x) { return x.id === kid; }); if (k) { k[field] = value; scheduleSave(); } }
+function splitArticle(aid) {
+  var a = currentOrder.articles.find(function(x) { return x.id === aid; });
+  if (!a) return;
+  var currentQtyNum = parseInt(a.qty) || 1;
+  if (currentQtyNum <= 1) { alert('Kan inte dela upp en artikel med antal 1.'); return; }
+  var overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+  overlay.innerHTML = '<div class="modal"><h3>Dela upp – ' + esc(a.name) + '</h3>' +
+    '<p style="font-size:13px;color:var(--text2);margin-bottom:16px">Totalt: ' + esc(a.qty) + '. Ange antal att bryta ut som ny rad.</p>' +
+    '<div class="modal-field"><label>Antal att bryta ut</label><input id="split-qty" type="number" min="1" max="' + (currentQtyNum - 1) + '" value="1" style="width:100%"></div>' +
+    '<div class="modal-actions"><button class="btn btn-sm" onclick="this.closest(\'.modal-overlay\').remove()">Avbryt</button>' +
+    '<button class="btn btn-sm btn-primary" onclick="doSplitArticle(\'' + aid + '\', this)">Dela upp</button></div></div>';
+  document.body.appendChild(overlay);
+  document.getElementById('split-qty').focus();
+  document.getElementById('split-qty').select();
+}
+
+function doSplitArticle(aid, btn) {
+  var splitNum = parseInt(document.getElementById('split-qty').value);
+  var a = currentOrder.articles.find(function(x) { return x.id === aid; });
+  if (!a) return;
+  var currentQtyNum = parseInt(a.qty) || 1;
+  var unit = a.qty.replace(/[0-9]/g, '').trim() || 'ST';
+  if (isNaN(splitNum) || splitNum < 1 || splitNum >= currentQtyNum) {
+    alert('Ange ett antal mellan 1 och ' + (currentQtyNum - 1) + '.'); return;
+  }
+  var remaining = currentQtyNum - splitNum;
+  a.qty = remaining + ' ' + unit;
+  var newArt = JSON.parse(JSON.stringify(a));
+  newArt.id = 'art' + Date.now();
+  newArt.qty = splitNum + ' ' + unit;
+  newArt.kolli = null;
+  newArt.serials = [];
+  var idx = currentOrder.articles.findIndex(function(x) { return x.id === aid; });
+  currentOrder.articles.splice(idx + 1, 0, newArt);
+  btn.closest('.modal-overlay').remove();
+  scheduleSave(); renderPackView();
+}
+
 function deleteArticle(aid) { currentOrder.articles = currentOrder.articles.filter(function(x) { return x.id !== aid; }); scheduleSave(); renderPackView(); }
 
 function openEditQty(aid) {
