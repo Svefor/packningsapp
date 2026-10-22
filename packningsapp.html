@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0053)file:///C:/Users/svefor/Downloads/packningsapp_3.html -->
 <html lang="sv"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,7 +70,32 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
 .btn-edit-order:hover{color:#E87722}
 .pack-title{font-size:15px;font-weight:700;color:#D0D0CE}
 .columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;height:calc(100vh - 180px);align-items:start}
-@media(max-width:600px){.columns{grid-template-columns:1fr}}
+/* ── Mobile tabs ── */
+.mob-tabs{display:none}
+@media(max-width:700px){
+  .mob-tabs{display:flex;gap:2px;background:rgba(255,255,255,.08);padding:3px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,.15);margin-bottom:10px}
+  .mob-tab{flex:1;padding:8px 4px;font-size:13px;border-radius:4px;border:none;background:none;cursor:pointer;color:rgba(255,255,255,.65);font-family:inherit;font-weight:500;text-align:center}
+  .mob-tab.active{background:var(--accent);color:#fff;font-weight:600}
+  .columns{display:block;height:auto;margin-top:0}
+  .columns>div{height:auto!important}
+  .mob-col{display:none}
+  .mob-col.active{display:flex;flex-direction:column}
+  #pack-articles{max-height:60vh;overflow-y:auto}
+  #pack-kollin{max-height:none}
+  .article-item{padding:11px 10px;min-height:44px}
+  .kolli-item{padding:9px 8px;min-height:40px}
+  .kolli-body{min-height:60px}
+  .add-kolli-btn,.add-pall-btn,.add-article-btn{padding:11px 8px;font-size:14px;min-height:44px}
+  .btn{min-height:40px}
+  .btn-sm{padding:7px 12px;font-size:13px}
+  .pack-toolbar{flex-wrap:wrap;gap:6px}
+  .topbar{padding:0 .75rem}
+  .topbar h1{font-size:13px}
+  #user-name{display:none}
+  .main{padding:.75rem}
+  .art-btn{min-width:32px;min-height:32px;font-size:15px;padding:4px 6px}
+  .drag-handle{font-size:15px;padding:0 4px}
+}
 .col-label{font-size:11px;font-weight:700;color:#D0D0CE;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .article-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:5px;background:var(--surface);cursor:grab;user-select:none;transition:box-shadow .1s,background .1s}
 .article-item:hover{background:var(--surface2);border-color:var(--border2)}
@@ -257,12 +281,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:10
           </div>
         </div>
         <div class="save-status" id="save-status"></div>
+        <div class="mob-tabs">
+          <button class="mob-tab active" id="mob-tab-art" onclick="mobTab('art')">📦 Artiklar</button>
+          <button class="mob-tab" id="mob-tab-kol" onclick="mobTab('kol')">🗃 Kollin</button>
+        </div>
         <div class="columns">
-          <div style="display:flex;flex-direction:column;height:calc(100vh - 180px)">
+          <div class="mob-col active" id="mob-art-col" style="display:flex;flex-direction:column;height:calc(100vh - 180px)">
             <div class="col-label"><span>Artiklar att packa</span><span id="unpack-count"></span></div>
             <div id="pack-articles" style="flex:1;overflow-y:auto;padding-right:4px;min-height:0"></div>
           </div>
-          <div style="display:flex;flex-direction:column;height:calc(100vh - 180px)">
+          <div class="mob-col" id="mob-kol-col" style="display:flex;flex-direction:column;height:calc(100vh - 180px)">
             <div class="col-label">Kollin</div>
             <div id="pack-kollin" style="flex:1;overflow-y:auto;padding-right:4px;min-height:0"></div>
             <div style="padding-top:6px;flex-shrink:0">
@@ -554,6 +582,13 @@ async function openFraktOrder(spId) {
 
 function renderPackView() {
   var o = currentOrder;
+  // On desktop, ensure both columns are visible
+  if (window.innerWidth > 700) {
+    var artCol = document.getElementById('mob-art-col');
+    var kolCol = document.getElementById('mob-kol-col');
+    if (artCol) artCol.style.display = 'flex';
+    if (kolCol) kolCol.style.display = 'flex';
+  }
   var unpacked = o.articles.filter(function(a) { return a.kolli === null; });
   document.getElementById('unpack-count').textContent = unpacked.length > 0 ? unpacked.length + ' kvar' : '\u2713 Alla packade';
   var al = document.getElementById('pack-articles');
@@ -582,6 +617,7 @@ function renderPackView() {
       d.appendChild(actions);
       d.addEventListener('dragstart', function(e) { dragItem = a.id; d.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
       d.addEventListener('dragend', function() { d.classList.remove('dragging'); });
+      (function(aid) { addTouchDrag(d, function() { touchDragItemId = aid; }, function() {}); })(a.id);
       al.appendChild(d);
     });
   }
@@ -597,6 +633,7 @@ function renderPackView() {
     (function(kid) {
       head.addEventListener('dragstart', function(e) { dragKolli = kid; e.dataTransfer.effectAllowed = 'move'; e.stopPropagation(); });
       head.addEventListener('dragend', function() { dragKolli = null; });
+      (function(kid2) { addTouchDrag(head, function() { touchDragKolliId = kid2; }, function() {}); })(kid);
     })(k.id);
     if (o.kollin.length > 1) {
       var removeBtn = document.createElement('button'); removeBtn.className = 'ki-back'; removeBtn.title = 'Ta bort kolli'; removeBtn.textContent = '\u2715';
@@ -626,6 +663,7 @@ function renderPackView() {
         ki.appendChild(kb); ki.appendChild(kd);
         ki.addEventListener('dragstart', function(e) { dragItem = a.id; ki.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
         ki.addEventListener('dragend', function() { ki.classList.remove('dragging'); });
+        (function(aid) { addTouchDrag(ki, function() { touchDragItemId = aid; }, function() {}); })(a.id);
         body.appendChild(ki);
       });
     }
@@ -697,7 +735,7 @@ function renderPackView() {
         });
         pklist.appendChild(pki);
       });
-      var pdz = document.createElement('div'); pdz.className = 'pall-drop-zone'; pdz.textContent = 'Dra kolli hit';
+      var pdz = document.createElement('div'); pdz.className = 'pall-drop-zone'; pdz.textContent = 'Dra kolli hit'; pdz.dataset.pall = p.id;
       (function(pid) {
         pdz.addEventListener('dragover', function(e) { e.preventDefault(); if (dragKolli) pdz.classList.add('drag-target'); });
         pdz.addEventListener('dragleave', function() { pdz.classList.remove('drag-target'); });
@@ -1300,6 +1338,90 @@ async function handleAddExcel(file) {
   } catch(e) {
     alert('Fel vid inläsning: ' + e.message);
   }
+}
+
+// ── Mobile tab switching ──
+function mobTab(tab) {
+  var isArt = tab === 'art';
+  document.getElementById('mob-tab-art').classList.toggle('active', isArt);
+  document.getElementById('mob-tab-kol').classList.toggle('active', !isArt);
+  var artCol = document.getElementById('mob-art-col');
+  var kolCol = document.getElementById('mob-kol-col');
+  // Only override display on narrow screens
+  if (window.innerWidth <= 700) {
+    artCol.style.display = isArt ? 'flex' : 'none';
+    kolCol.style.display = isArt ? 'none' : 'flex';
+    artCol.classList.toggle('active', isArt);
+    kolCol.classList.toggle('active', !isArt);
+  }
+}
+
+// ── Touch drag-drop ──
+var touchDragEl = null;
+var touchGhost = null;
+var touchDragItemId = null;
+var touchDragKolliId = null;
+
+function addTouchDrag(el, onStart, onEnd) {
+  el.addEventListener('touchstart', function(e) {
+    // Only start drag on the drag handle or the element itself (not buttons)
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+    e.stopPropagation();
+    onStart();
+    touchDragEl = el;
+    var t = e.touches[0];
+    // Create ghost
+    touchGhost = el.cloneNode(true);
+    touchGhost.style.cssText = 'position:fixed;opacity:.7;pointer-events:none;z-index:9999;width:' + el.offsetWidth + 'px;left:' + (t.clientX - 20) + 'px;top:' + (t.clientY - 20) + 'px;box-shadow:0 4px 16px rgba(0,0,0,.3)';
+    document.body.appendChild(touchGhost);
+    el.classList.add('dragging');
+  }, {passive: true});
+
+  el.addEventListener('touchmove', function(e) {
+    if (!touchGhost) return;
+    e.preventDefault();
+    var t = e.touches[0];
+    touchGhost.style.left = (t.clientX - 20) + 'px';
+    touchGhost.style.top = (t.clientY - 20) + 'px';
+    // Highlight drop target under finger
+    touchGhost.style.display = 'none';
+    var below = document.elementFromPoint(t.clientX, t.clientY);
+    touchGhost.style.display = '';
+    document.querySelectorAll('.kolli-body.drag-target,.pall-drop-zone.drag-target').forEach(function(z) { z.classList.remove('drag-target'); });
+    if (below) {
+      var kb = below.closest('.kolli-body');
+      var pz = below.closest('.pall-drop-zone');
+      if (kb) kb.classList.add('drag-target');
+      if (pz) pz.classList.add('drag-target');
+    }
+  }, {passive: false});
+
+  el.addEventListener('touchend', function(e) {
+    if (!touchGhost) return;
+    var t = e.changedTouches[0];
+    if (touchGhost) { touchGhost.remove(); touchGhost = null; }
+    el.classList.remove('dragging');
+    document.querySelectorAll('.kolli-body.drag-target,.pall-drop-zone.drag-target').forEach(function(z) { z.classList.remove('drag-target'); });
+    touchGhost = null;
+    // Find drop target
+    var below = document.elementFromPoint(t.clientX, t.clientY);
+    if (below) {
+      var kb = below.closest('.kolli-body');
+      var pz = below.closest('.pall-drop-zone');
+      if (kb && touchDragItemId) {
+        var kid = kb.dataset.kolli;
+        var a = currentOrder.articles.find(function(x) { return x.id === touchDragItemId; });
+        if (a) { a.kolli = kid; touchDragItemId = null; touchDragKolliId = null; scheduleSave(); renderPackView(); }
+      } else if (pz && touchDragKolliId) {
+        var pid = pz.dataset.pall;
+        var k = currentOrder.kollin.find(function(x) { return x.id === touchDragKolliId; });
+        if (k) { k.pallId = pid; touchDragItemId = null; touchDragKolliId = null; scheduleSave(); renderPackView(); }
+      }
+    }
+    touchDragItemId = null;
+    touchDragKolliId = null;
+    onEnd();
+  }, {passive: true});
 }
 
 async function startApp() {
